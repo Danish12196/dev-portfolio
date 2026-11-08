@@ -101,7 +101,7 @@ export const useWindows = create<WindowState>()(
       focus: (id) => {
         const { windows, topZ } = get()
         const target = windows.find((w) => w.id === id)
-        if (!target || target.z === topZ) return
+        if (!target || (target.z === topZ && !target.minimized)) return
         set({ topZ: topZ + 1, windows: windows.map((w) => (w.id === id ? { ...w, z: topZ + 1, minimized: false } : w)) })
       },
 
