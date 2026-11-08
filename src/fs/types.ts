@@ -8,6 +8,10 @@ export interface ProjectMeta {
   status?: string
   color?: string
   order?: number
+  /** owner/name of the GitHub repo whose screenshots and videos fill media/ */
+  repo?: string
+  /** folder in that repo holding them, default portfolio */
+  media?: string
 }
 
 export interface FileNode {
@@ -19,6 +23,8 @@ export interface FileNode {
   src?: string
   url?: string
   title?: string
+  /** still shown before a video plays */
+  poster?: string
 }
 
 export interface DirNode {

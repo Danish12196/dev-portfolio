@@ -1,0 +1,13 @@
+{
+  "name": "Breaking camouflage",
+  "tagline": "Classifying camouflaged animals in COD10K",
+  "year": 2026,
+  "stack": [
+    "PyTorch",
+    "ViT",
+    "DINOv2",
+    "CLIP"
+  ],
+  "status": "report",
+  "color": "#B5D99C"
+}

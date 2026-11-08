@@ -1,0 +1,12 @@
+{
+  "name": "Autoencoders",
+  "tagline": "Teaching a network to imagine cats",
+  "year": 2026,
+  "stack": [
+    "PyTorch",
+    "ONNX",
+    "JavaScript"
+  ],
+  "status": "live",
+  "color": "#C9B6F2"
+}

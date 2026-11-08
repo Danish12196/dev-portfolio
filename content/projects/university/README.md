@@ -1,9 +1,10 @@
-# University work
+# University
 
-<!-- TODO(Danish): pick which coursework belongs here and describe it. -->
+I'm studying for a Master of Applied Artificial Intelligence at the University of
+Wollongong in Dubai. Each subject has its own folder:
 
-## Breaking camouflage (COD10K)
-
-Benchmarking ViT, ConvNeXt, CLIP and DINOv2 on classifying camouflaged animals
-in COD10K: how pre-training, resolution and model size compare, and how much the
-models rely on the habitat.
+- **MAAI901 Deep Learning for Visual Data** (computer vision): a benchmark of
+  vision transformers on camouflaged animals, and an interactive presentation on
+  autoencoders.
+- **MAAI902 Natural Language Processing & LLMs**: Ledger, which sorts UAE bank
+  SMS alerts into spending categories and answers questions about them.

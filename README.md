@@ -33,11 +33,28 @@ Projects are added by hand. Each one is a folder in `content/projects/`:
 content/projects/fuloos/
   project.json   required: name, tagline, year, stack, status, color, order
   README.md      the write-up shown in the reading window
-  Fuloos.app     optional: { "title": "Fuloos", "url": "https://..." }, runs live in a window
+  Fuloos.app     optional: { "title": "Fuloos", "url": "https://fuloos.danishali.dev" }, runs live in a window
   github.link    optional: a file whose only content is a URL, opens in a new tab
-  screenshots/   optional: png/jpg/webp/gif, opens in an image viewer
-  demo.mp4       optional: opens in a video player
+  media/         optional: png/jpg/webp/gif open in an image viewer, mp4/webm in a video player
 ```
+
+Folders can nest: `content/projects/university/` holds one folder per subject
+(`MAAI901`, `MAAI902`), and each subject holds its projects. Any folder with a
+`project.json` gets the project header on its README, and `open`/`run` find it by
+name (`run ledger`).
+
+### Screenshots and videos from a project's own repo
+
+Add `"repo": "Danish12196/fuloos"` to `project.json` and the build lists that
+repo's `portfolio/` folder (or the folder named by `"media"`) and adds it to the
+project as `media/`. The files load straight from GitHub, so pushing a new
+screenshot to the project's repo and redeploying this site is enough. `demo.mp4`
+uses `demo-poster.jpg` as its poster, here and in local `media/` folders. If
+GitHub can't be reached the build carries on without those files; set
+`GITHUB_TOKEN` in Vercel if the anonymous rate limit ever gets in the way.
+
+University projects keep their media in this repo instead, under each project's
+`media/` folder.
 
 `project.json`:
 
@@ -49,7 +66,8 @@ content/projects/fuloos/
   "stack": ["TypeScript", "React"],
   "status": "live",
   "color": "#2f9e6b",
-  "order": 1
+  "order": 1,
+  "repo": "Danish12196/fuloos"
 }
 ```
 
@@ -105,5 +123,5 @@ Cloudflare and points `danishali.dev` at Vercel.
 ## To do
 
 - Replace the placeholder write-ups in `content/` (marked `TODO(Danish)`).
-- Point each `.app` file at its danishali.dev subdomain once those are live.
-- Add screenshots and demo videos to each project folder.
+- Add the other projects (Pan, HomeHub, Actual Budget Import) once they have
+  danishali.dev subdomains.
