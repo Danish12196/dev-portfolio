@@ -1,0 +1,9 @@
+{
+  "name": "Games",
+  "tagline": "Small games I've made for game jams, most of them playable right here",
+  "year": 2026,
+  "stack": ["Unity", "C#"],
+  "status": "playable",
+  "color": "#F7A072",
+  "order": 4
+}

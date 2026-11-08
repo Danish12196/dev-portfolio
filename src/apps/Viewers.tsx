@@ -23,8 +23,10 @@ function ProjectHeader({ dir }: { dir: DirNode }) {
   const app = findApp(dir)
   const links = dir.children.filter((c): c is FileNode => c.type === 'file' && c.kind === 'link')
   const live = app?.type === 'file' && app.url ? new URL(app.url).host : undefined
+  const game = Boolean(app?.type === 'file' && app.width)
   return (
     <header className="proj-head" style={{ ['--ic-color' as string]: meta.color }}>
+      {meta.cover && <img className="proj-cover" src={meta.cover} alt={`${meta.name} cover art`} />}
       <div className="proj-title">
         <span className="ic ic-lg ic-tile ic-app" aria-hidden="true">
           {meta.name.slice(0, 1)}
@@ -37,17 +39,18 @@ function ProjectHeader({ dir }: { dir: DirNode }) {
       <div className="proj-chips">
         {meta.year && <span className="chip">{meta.year}</span>}
         {meta.stack?.length ? <span className="chip">{meta.stack.join(' · ')}</span> : null}
-        {live && <span className="chip chip-live">● live at {live}</span>}
+        {meta.jam && <span className="chip">{meta.jam}</span>}
+        {live && <span className="chip chip-live">{game ? '▶ plays in your browser' : `● live at ${live}`}</span>}
       </div>
       <div className="proj-actions">
         {app && (
           <button type="button" className="pill pill-dark" onClick={() => openNode(app)}>
-            Open {meta.name}
+            {game ? 'Play' : 'Open'} {meta.name}
           </button>
         )}
         {links.map((l) => (
           <a key={l.path} className="pill" href={l.url} target="_blank" rel="noreferrer">
-            {l.name.replace(/\.link$/, '').replace(/^github$/i, 'GitHub')} ↗
+            {l.name.replace(/\.link$/, '').replace(/^github$/i, 'GitHub').replace(/^itch$/i, 'itch.io')} ↗
           </a>
         ))}
       </div>

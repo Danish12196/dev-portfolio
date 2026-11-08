@@ -1,0 +1,12 @@
+{
+  "name": "Rolling in Dough",
+  "tagline": "Tower defence: you're a cat protecting your biscuits from dogs",
+  "year": 2025,
+  "stack": ["Unity", "C#"],
+  "status": "team",
+  "color": "#8FCFE0",
+  "order": 2,
+  "itch": "https://mckay-makes-games.itch.io/rolling-in-dough",
+  "jam": "Brackeys Game Jam 2025.2",
+  "cover": "media/01-cover.png"
+}

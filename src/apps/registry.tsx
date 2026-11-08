@@ -11,7 +11,12 @@ export function specFor(node: FsNode): OpenSpec {
     return { kind: 'folder', path: node.path, title: node.meta?.name ?? displayPath(node.path), color: node.meta?.color }
   }
   const color = projectColor(node.path)
-  if (node.kind === 'app') return { kind: 'app', url: node.url, path: node.path, color, title: `${node.title ?? node.name.replace(/\.app$/, '')} (live)` }
+  if (node.kind === 'app') {
+    const title = node.title ?? node.name.replace(/\.app$/, '')
+    // Games carry their own size; the window adds its 42px title bar on top.
+    if (node.width && node.height) return { kind: 'app', url: node.url, path: node.path, color, title: `${title} (play)`, w: node.width, h: node.height + 44 }
+    return { kind: 'app', url: node.url, path: node.path, color, title: `${title} (live)` }
+  }
   if (node.kind === 'link') return { kind: 'text', path: node.path, title: node.name, color }
   return { kind: node.kind, path: node.path, title: node.name, color }
 }
