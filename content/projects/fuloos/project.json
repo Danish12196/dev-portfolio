@@ -1,0 +1,9 @@
+{
+  "name": "Fuloos",
+  "tagline": "An app for keeping track of money",
+  "year": 2026,
+  "stack": ["TypeScript", "React"],
+  "status": "live",
+  "color": "#2f9e6b",
+  "order": 1
+}

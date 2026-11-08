@@ -1,0 +1,9 @@
+{
+  "name": "University",
+  "tagline": "Coursework and research projects",
+  "year": 2026,
+  "stack": ["Python", "PyTorch"],
+  "status": "archive",
+  "color": "#b7791f",
+  "order": 3
+}

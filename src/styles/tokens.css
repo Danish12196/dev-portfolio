@@ -1,0 +1,58 @@
+/*
+ * Design tokens. Every colour, font, radius and shadow the UI uses lives here,
+ * so a different look (Paper, Phosphor, Blueprint, ...) is a swap of this file.
+ */
+:root {
+  --font-ui: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --radius: 4px;
+  --bar-h: 28px;
+  --dock-h: 60px;
+
+  /* light */
+  --wall: #e6e4dd;
+  --wall-dot: #c9c6bc;
+  --paper: #fbfaf7;
+  --surface: #f3f1ec;
+  --ink: #17181c;
+  --muted: #64656d;
+  --line: #d6d3ca;
+  --line-strong: #8d8b84;
+  --accent: #1f6feb;
+  --on-accent: #ffffff;
+  --focus: #1f6feb;
+  --folder: #6b7280;
+  --shadow: 6px 6px 0 rgb(23 24 28 / 0.9);
+  --shadow-soft: 0 1px 0 rgb(23 24 28 / 0.15);
+
+  --term-bg: #101214;
+  --term-fg: #d4dbd6;
+  --term-dim: #6f7c74;
+  --term-accent: #8fe3b0;
+  --term-dir: #8ab4ff;
+  --term-err: #ff8f7a;
+
+  color-scheme: light;
+}
+
+:root[data-theme='dark'] {
+  --wall: #15171b;
+  --wall-dot: #2a2e35;
+  --paper: #1d2026;
+  --surface: #23272e;
+  --ink: #e9eaee;
+  --muted: #9a9ea8;
+  --line: #333842;
+  --line-strong: #6b717d;
+  --accent: #6ea8ff;
+  --on-accent: #0b1220;
+  --focus: #6ea8ff;
+  --folder: #8b93a1;
+  --shadow: 6px 6px 0 rgb(0 0 0 / 0.65);
+  --shadow-soft: 0 1px 0 rgb(0 0 0 / 0.4);
+
+  --term-bg: #0b0d0e;
+
+  color-scheme: dark;
+}
