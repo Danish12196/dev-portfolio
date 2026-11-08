@@ -11,9 +11,10 @@ function fileAt(path?: string): FileNode | undefined {
   return n?.type === 'file' ? n : undefined
 }
 
+/** The project a README introduces: its folder, when that folder has a project.json. */
 function projectOf(path: string): DirNode | undefined {
-  const m = path.match(/^\/projects\/[^/]+(?=\/readme\.md$)/i)
-  const dir = m ? getNode(m[0]) : undefined
+  if (!/\/readme\.md$/i.test(path)) return undefined
+  const dir = getNode(path.slice(0, path.lastIndexOf('/')))
   return dir?.type === 'dir' && dir.meta ? dir : undefined
 }
 
@@ -124,7 +125,7 @@ export function ImageView({ path }: { path?: string }) {
 export function VideoView({ path }: { path?: string }) {
   const file = fileAt(path)
   if (!file) return <Missing />
-  return <video className="media" src={file.src} controls playsInline />
+  return <video className="media" src={file.src} poster={file.poster} controls playsInline preload="metadata" />
 }
 
 export function PdfView({ path }: { path?: string }) {

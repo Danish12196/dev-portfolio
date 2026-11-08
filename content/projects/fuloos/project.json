@@ -2,8 +2,12 @@
   "name": "Fuloos",
   "tagline": "An app for keeping track of money",
   "year": 2026,
-  "stack": ["TypeScript", "React"],
+  "stack": [
+    "TypeScript",
+    "React"
+  ],
   "status": "live",
   "color": "#7CC9A0",
-  "order": 1
+  "order": 1,
+  "repo": "Danish12196/fuloos"
 }

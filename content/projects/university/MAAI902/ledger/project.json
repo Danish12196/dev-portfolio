@@ -1,0 +1,8 @@
+{
+  "name": "Ledger",
+  "tagline": "Categorising UAE bank SMS expenses",
+  "year": 2026,
+  "stack": ["Python", "scikit-learn", "Qwen2.5", "WebLLM"],
+  "status": "live",
+  "color": "#F2C48D"
+}

@@ -1,4 +1,4 @@
-import { displayPath, findReadme, getNode } from '../fs'
+import { displayPath, findReadme, projectAt } from '../fs'
 import type { FsNode } from '../fs/types'
 import type { OpenSpec, Win } from '../store/windows'
 import FolderView from './FolderView'
@@ -20,9 +20,7 @@ export { findReadme }
 
 /** The colour of the project a file lives in, if any. */
 export function projectColor(path: string): string | undefined {
-  const m = path.match(/^\/projects\/[^/]+/)
-  const dir = m ? getNode(m[0]) : undefined
-  return dir?.type === 'dir' ? dir.meta?.color : undefined
+  return projectAt(path)?.meta?.color
 }
 
 interface RenderOpts {

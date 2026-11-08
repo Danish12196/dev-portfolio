@@ -2,8 +2,12 @@
   "name": "Jeopardy",
   "tagline": "A homemade quiz game to play with friends",
   "year": 2026,
-  "stack": ["TypeScript", "Go"],
+  "stack": [
+    "TypeScript",
+    "Go"
+  ],
   "status": "live",
   "color": "#93A6F2",
-  "order": 2
+  "order": 2,
+  "repo": "Danish12196/jeopardy"
 }

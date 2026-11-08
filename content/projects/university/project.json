@@ -1,9 +1,9 @@
 {
   "name": "University",
-  "tagline": "Coursework and research projects",
+  "tagline": "Master of Applied Artificial Intelligence, University of Wollongong in Dubai",
   "year": 2026,
   "stack": ["Python", "PyTorch"],
-  "status": "archive",
+  "status": "study",
   "color": "#F4CE5C",
   "order": 3
 }

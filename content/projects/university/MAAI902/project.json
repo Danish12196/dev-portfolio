@@ -1,0 +1,9 @@
+{
+  "name": "MAAI902",
+  "tagline": "Natural Language Processing & LLMs",
+  "year": 2026,
+  "stack": ["scikit-learn", "LLMs"],
+  "status": "study",
+  "color": "#9FD3E8",
+  "order": 2
+}

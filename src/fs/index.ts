@@ -45,10 +45,28 @@ export function projects() {
     .sort((a, b) => (a.meta?.order ?? 99) - (b.meta?.order ?? 99))
 }
 
-/** Find a project by folder name or display name, e.g. "fuloos" or "Fuloos". */
+/** Every folder with a project.json, including ones nested inside others (university subjects). */
+export function allProjects(dir: DirNode | undefined = getNode(PROJECTS_DIR) as DirNode | undefined): DirNode[] {
+  if (!dir || dir.type !== 'dir') return []
+  return dir.children
+    .filter((c): c is DirNode => c.type === 'dir')
+    .flatMap((c) => [...(c.meta ? [c] : []), ...allProjects(c)])
+}
+
+/** Find a project by folder name or display name, e.g. "fuloos", "Fuloos" or "ledger". */
 export function findProject(name: string): DirNode | undefined {
   const q = name.toLowerCase()
-  return projects().find((p) => p.name.toLowerCase() === q || p.meta?.name.toLowerCase() === q)
+  return allProjects().find((p) => p.name.toLowerCase() === q || p.meta?.name.toLowerCase() === q)
+}
+
+/** The innermost project folder that contains path, if any. */
+export function projectAt(path: string): DirNode | undefined {
+  const parts = path.split('/').filter(Boolean)
+  for (let i = parts.length; i > 0; i--) {
+    const n = getNode('/' + parts.slice(0, i).join('/'))
+    if (n?.type === 'dir' && n.meta) return n
+  }
+  return undefined
 }
 
 export function findApp(dir: DirNode) {

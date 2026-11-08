@@ -1,1 +1,1 @@
-{ "title": "Fuloos", "url": "https://fuloos-two.vercel.app" }
+{ "title": "Fuloos", "url": "https://fuloos.danishali.dev" }

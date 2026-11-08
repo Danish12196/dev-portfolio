@@ -1,1 +1,1 @@
-{ "title": "Jeopardy", "url": "https://jeopardy-pi-henna.vercel.app" }
+{ "title": "Jeopardy", "url": "https://jeopardy.danishali.dev" }
