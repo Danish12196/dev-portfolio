@@ -66,7 +66,7 @@ function place(w: number, h: number, below?: Win) {
     const y = below.y + STEP
     if (x + width <= vw - 12 && y + height <= vh - 12) return { w: width, h: height, x, y }
     // No room to cascade: start again from the top left corner of the free area.
-    if (Math.abs(centred.x - below.x) < STEP && Math.abs(centred.y - below.y) < STEP) return { w: width, h: height, x: 12 + STEP, y: 12 }
+    if (Math.abs(centred.x - below.x) < STEP && Math.abs(centred.y - below.y) < STEP) return { w: width, h: height, x: Math.max(12, Math.min(12 + STEP, vw - width - 12)), y: 12 }
   }
   return { w: width, h: height, ...centred }
 }
