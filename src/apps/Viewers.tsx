@@ -1,7 +1,8 @@
 import { marked } from 'marked'
 import { useEffect, useMemo, useState } from 'react'
-import { getNode } from '../fs'
-import type { FileNode } from '../fs/types'
+import { findApp, getNode } from '../fs'
+import type { DirNode, FileNode } from '../fs/types'
+import { openNode } from '../shell/opener'
 
 marked.use({ gfm: true })
 
@@ -10,19 +11,75 @@ function fileAt(path?: string): FileNode | undefined {
   return n?.type === 'file' ? n : undefined
 }
 
+function projectOf(path: string): DirNode | undefined {
+  const m = path.match(/^\/projects\/[^/]+(?=\/readme\.md$)/i)
+  const dir = m ? getNode(m[0]) : undefined
+  return dir?.type === 'dir' && dir.meta ? dir : undefined
+}
+
+function ProjectHeader({ dir }: { dir: DirNode }) {
+  const meta = dir.meta!
+  const app = findApp(dir)
+  const links = dir.children.filter((c): c is FileNode => c.type === 'file' && c.kind === 'link')
+  const live = app?.type === 'file' && app.url ? new URL(app.url).host : undefined
+  return (
+    <header className="proj-head" style={{ ['--ic-color' as string]: meta.color }}>
+      <div className="proj-title">
+        <span className="ic ic-lg ic-tile ic-app" aria-hidden="true">
+          {meta.name.slice(0, 1)}
+        </span>
+        <div>
+          <h1>{meta.name}</h1>
+          {meta.tagline && <p>{meta.tagline}</p>}
+        </div>
+      </div>
+      <div className="proj-chips">
+        {meta.year && <span className="chip">{meta.year}</span>}
+        {meta.stack?.length ? <span className="chip">{meta.stack.join(' · ')}</span> : null}
+        {live && <span className="chip chip-live">● live at {live}</span>}
+      </div>
+      <div className="proj-actions">
+        {app && (
+          <button type="button" className="pill pill-dark" onClick={() => openNode(app)}>
+            Open {meta.name}
+          </button>
+        )}
+        {links.map((l) => (
+          <a key={l.path} className="pill" href={l.url} target="_blank" rel="noreferrer">
+            {l.name.replace(/\.link$/, '').replace(/^github$/i, 'GitHub')} ↗
+          </a>
+        ))}
+      </div>
+    </header>
+  )
+}
+
 export function MarkdownView({ path }: { path?: string }) {
   const file = fileAt(path)
+  const project = file ? projectOf(file.path) : undefined
   // Content comes from this repo's own content/ folder, so it is trusted HTML.
-  const html = useMemo(() => (file?.text ? (marked.parse(file.text) as string) : ''), [file])
+  const html = useMemo(() => {
+    if (!file?.text) return ''
+    // The project header already shows the title, so drop the README's first heading.
+    const text = project ? file.text.replace(/^\s*(<!--[\s\S]*?-->\s*)*#\s.*\n/, '') : file.text
+    return marked.parse(text) as string
+  }, [file, project])
   if (!file) return <Missing />
   return (
-    <article className="doc" dangerouslySetInnerHTML={{ __html: html }} onClick={(e) => {
-      const a = (e.target as HTMLElement).closest('a')
-      if (a && a.host !== location.host) {
-        e.preventDefault()
-        window.open(a.href, '_blank', 'noopener,noreferrer')
-      }
-    }} />
+    <div className="doc-wrap">
+      {project && <ProjectHeader dir={project} />}
+      <article
+        className="doc"
+        dangerouslySetInnerHTML={{ __html: html }}
+        onClick={(e) => {
+          const a = (e.target as HTMLElement).closest('a')
+          if (a && a.host !== location.host) {
+            e.preventDefault()
+            window.open(a.href, '_blank', 'noopener,noreferrer')
+          }
+        }}
+      />
+    </div>
   )
 }
 

@@ -6,9 +6,10 @@ tiny operating system.
 - **Terminal mode.** The site opens on a desktop with a terminal in front. Type
   `help`, `projects`, `open fuloos` or `play jeopardy`. Anything underlined is
   clickable if you'd rather not type.
-- **Desktop mode.** Close, minimise or `exit` the terminal to get the desktop.
-  Every project is a folder, and every file opens in its own window that you can
-  drag, resize, minimise and maximise.
+- **Desktop mode.** Close, minimise or `exit` the terminal to get the desktop,
+  with a taskbar along the bottom (start menu, project search, open windows and
+  the clock). Every project is a folder, and every file opens in its own window
+  that you can drag, resize, minimise and maximise.
 - **Phone mode.** On small screens the site becomes a phone-style home screen
   where every app opens full screen.
 
@@ -86,13 +87,14 @@ src/fs/               file tree helpers (paths, lookups)
 src/store/windows.ts  window manager state, saved to localStorage
 src/terminal/         terminal commands and tab completion
 src/apps/             terminal, folder view and file viewers
-src/desktop/          desktop, windows, menu bar, dock
+src/desktop/          desktop, wallpaper, windows, taskbar and start menu
 src/phone/            phone home screen
 src/styles/tokens.css every colour, font, radius and shadow
 ```
 
-The visual design is still being decided. Every colour, font and shadow comes
-from `src/styles/tokens.css`, so a new look is mostly a change to that file.
+The look is "Soft Paper": rounded pastel windows and folders, the Nunito font,
+an illustrated hills-and-sun wallpaper, and a terminal that is always green on
+black. Every colour, font and shadow comes from `src/styles/tokens.css`.
 
 ## Deploying
 
@@ -105,4 +107,3 @@ Cloudflare and points `danishali.dev` at Vercel.
 - Replace the placeholder write-ups in `content/` (marked `TODO(Danish)`).
 - Point each `.app` file at its danishali.dev subdomain once those are live.
 - Add screenshots and demo videos to each project folder.
-- Pick a visual direction and update `tokens.css`.

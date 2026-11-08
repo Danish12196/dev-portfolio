@@ -1,58 +1,85 @@
 /*
- * Design tokens. Every colour, font, radius and shadow the UI uses lives here,
- * so a different look (Paper, Phosphor, Blueprint, ...) is a swap of this file.
+ * Soft Paper design tokens. Every colour, font, radius and shadow the UI uses
+ * lives here, so the look can be adjusted in one place.
  */
 :root {
-  --font-ui: 'Hanken Grotesk', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-ui: 'Nunito', ui-rounded, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  --radius: 4px;
-  --bar-h: 28px;
-  --dock-h: 60px;
+  --radius-sm: 10px;
+  --radius: 16px;
+  --radius-lg: 20px;
+  --stroke: 1.5px;
+  --taskbar-h: 54px;
 
   /* light */
-  --wall: #e6e4dd;
-  --wall-dot: #c9c6bc;
-  --paper: #fbfaf7;
-  --surface: #f3f1ec;
-  --ink: #17181c;
-  --muted: #64656d;
-  --line: #d6d3ca;
-  --line-strong: #8d8b84;
-  --accent: #1f6feb;
-  --on-accent: #ffffff;
-  --focus: #1f6feb;
-  --folder: #6b7280;
-  --shadow: 6px 6px 0 rgb(23 24 28 / 0.9);
-  --shadow-soft: 0 1px 0 rgb(23 24 28 / 0.15);
+  --paper-bg: #f5ecdc;
+  --paper-dot: rgb(42 38 34 / 0.1);
+  --paper: #fffdf8;
+  --chip: #f2eadb;
+  --chip-line: #e0d6c4;
+  --ink: #2a2622;
+  --muted: #6b6258;
+  --muted-2: #57504a;
+  --peach: #f7b267;
+  --peach-soft: #fde6d3;
+  --rust: #b5562a;
+  --mint: #7cc9a0;
+  --mint-soft: #e3f4e8;
+  --btn-min: #f7d774;
+  --btn-max: #a8d8b0;
+  --btn-close: #f49a8c;
+  --accent: var(--rust);
+  --on-pastel: #2a2622;
+  --focus: #2a2622;
+  --shadow: 0 6px 0 var(--ink);
+  --shadow-sm: 0 4px 0 var(--ink);
 
-  --term-bg: #101214;
-  --term-fg: #d4dbd6;
-  --term-dim: #6f7c74;
-  --term-accent: #8fe3b0;
-  --term-dir: #8ab4ff;
-  --term-err: #ff8f7a;
+  /* wallpaper */
+  --sun: #f7b267;
+  --cloud: #fffdf8;
+  --hill-1: #d3e3c4;
+  --hill-2: #afd0a0;
+  --hill-3: #88ba8b;
+  --tree: #5e9e6e;
+  --trunk: #6b5a48;
+
+  /* the terminal is always classic green on black */
+  --term-bg: #0a0f0a;
+  --term-fg: #3cff7a;
+  --term-dim: #2a9d53;
+  --term-accent: #b6ffcb;
+  --term-dir: #7dffa8;
+  --term-err: #ff7a6b;
+  --term-line: #1b2a1d;
 
   color-scheme: light;
 }
 
 :root[data-theme='dark'] {
-  --wall: #15171b;
-  --wall-dot: #2a2e35;
-  --paper: #1d2026;
-  --surface: #23272e;
-  --ink: #e9eaee;
-  --muted: #9a9ea8;
-  --line: #333842;
-  --line-strong: #6b717d;
-  --accent: #6ea8ff;
-  --on-accent: #0b1220;
-  --focus: #6ea8ff;
-  --folder: #8b93a1;
-  --shadow: 6px 6px 0 rgb(0 0 0 / 0.65);
-  --shadow-soft: 0 1px 0 rgb(0 0 0 / 0.4);
+  --paper-bg: #1f2a2e;
+  --paper-dot: rgb(255 253 248 / 0.07);
+  --paper: #2b2722;
+  --chip: #3a342d;
+  --chip-line: #4a4239;
+  --ink: #f5ecdc;
+  --muted: #c2b6a6;
+  --muted-2: #d6cbbb;
+  --peach-soft: #4a3526;
+  --mint-soft: #2c3f33;
+  --accent: #f7b267;
+  --focus: #f7b267;
+  --shadow: 0 6px 0 rgb(0 0 0 / 0.55);
+  --shadow-sm: 0 4px 0 rgb(0 0 0 / 0.55);
 
-  --term-bg: #0b0d0e;
+  /* night-time wallpaper */
+  --sun: #f3e3b5;
+  --cloud: #3b4a50;
+  --hill-1: #2f4a3c;
+  --hill-2: #284134;
+  --hill-3: #1f3529;
+  --tree: #3f6e4c;
+  --trunk: #4a3d31;
 
   color-scheme: dark;
 }

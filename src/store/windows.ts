@@ -51,7 +51,7 @@ let counter = 0
 
 function place(w: number, h: number, offset: number) {
   const vw = window.innerWidth
-  const vh = window.innerHeight - 28 - 72 // menu bar + dock
+  const vh = window.innerHeight - 54 // taskbar
   const width = Math.min(w, vw - 24)
   const height = Math.min(h, vh - 24)
   return {
