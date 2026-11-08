@@ -54,11 +54,23 @@ export default function Snake({ onQuit }: { onQuit: (...l: Line[]) => void }) {
     state: 'ready' as 'ready' | 'playing' | 'paused' | 'over',
   })
 
+  /** Puts food on a random free cell. Returns false when the board is full. */
   function placeFood() {
     const g = game.current
-    for (;;) {
-      const f = { x: Math.floor(Math.random() * g.cols), y: Math.floor(Math.random() * g.rows) }
-      if (!g.snake.some((p) => p.x === f.x && p.y === f.y)) return (g.food = f)
+    const free: Pt[] = []
+    for (let y = 0; y < g.rows; y++)
+      for (let x = 0; x < g.cols; x++) if (!g.snake.some((p) => p.x === x && p.y === y)) free.push({ x, y })
+    if (!free.length) return false
+    g.food = free[Math.floor(Math.random() * free.length)]
+    return true
+  }
+
+  function gameOver() {
+    const g = game.current
+    g.state = 'over'
+    if (g.score > g.best) {
+      g.best = g.score
+      saveBest(g.best)
     }
   }
 
@@ -101,18 +113,12 @@ export default function Snake({ onQuit }: { onQuit: (...l: Line[]) => void }) {
     const hitWall = next.x < 0 || next.y < 0 || next.x >= g.cols || next.y >= g.rows
     const eating = next.x === g.food.x && next.y === g.food.y
     const body = eating ? g.snake : g.snake.slice(0, -1)
-    if (hitWall || body.some((p) => p.x === next.x && p.y === next.y)) {
-      g.state = 'over'
-      if (g.score > g.best) {
-        g.best = g.score
-        saveBest(g.best)
-      }
-      return
-    }
+    if (hitWall || body.some((p) => p.x === next.x && p.y === next.y)) return gameOver()
     g.snake = [next, ...body]
     if (eating) {
       g.score++
-      placeFood()
+      // Filling the whole board ends the game as a win.
+      if (!placeFood()) gameOver()
     }
   }
 
@@ -195,7 +201,9 @@ export default function Snake({ onQuit }: { onQuit: (...l: Line[]) => void }) {
     }
     loop()
     const ro = new ResizeObserver(() => {
-      if (game.current.state !== 'playing') reset()
+      // Only a board that hasn't started follows the new size; a game in progress or just finished keeps its grid and score.
+      const { state } = game.current
+      if (state === 'ready') reset()
       draw()
     })
     ro.observe(boxRef.current!)
