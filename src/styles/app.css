@@ -984,6 +984,15 @@ button {
   background: var(--paper);
   border-top: var(--stroke) solid var(--ink);
 }
+.imgview-full {
+  margin-left: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--chip);
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: none;
+}
 .imgview-bar button {
   width: 30px;
   height: 30px;
@@ -1148,7 +1157,11 @@ button {
   font-size: 14px;
   font-weight: 800;
 }
-.ph-app-bar span {
+.ph-app-bar span,
+.ph-app-title {
+  margin: 0;
+  font: inherit;
+  min-width: 0;
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1261,3 +1274,57 @@ a.seg,
   color: var(--term-fg);
 }
 
+
+/* ---------- Accessibility and polish ---------- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+/* A focused window gets a ring inside its border, so it is never clipped. */
+.win:focus-visible {
+  outline-offset: -5px;
+}
+/* The round title-bar buttons stay small but get a 32px hit area. */
+.win-buttons button {
+  position: relative;
+}
+.win-buttons button::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+}
+/* The phone app bar already has a back button, so the folder's own one is a duplicate. */
+.phone .folder-bar > .round-btn {
+  display: none;
+}
+/* Line the Files folder up with the square dock tiles next to it. */
+.ph-dock .ic-folder {
+  margin-top: calc(var(--s) * 0.08);
+}
+.imgview img {
+  height: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .win-buttons button:hover {
+    transform: none;
+  }
+}
+
+.ph-app-title:focus,
+.ph-hello h1:focus {
+  outline: none;
+}

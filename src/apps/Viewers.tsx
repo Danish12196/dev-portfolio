@@ -1,6 +1,6 @@
 import { marked } from 'marked'
-import { useEffect, useMemo, useState } from 'react'
-import { findApp, getNode } from '../fs'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { findApp, getNode, projectAt } from '../fs'
 import type { DirNode, FileNode } from '../fs/types'
 import { openNode } from '../shell/opener'
 
@@ -90,32 +90,85 @@ export function TextView({ path }: { path?: string }) {
   return <pre className="plain">{file.text}</pre>
 }
 
+/** "02-accuracy-by-size.png" -> "Accuracy by size" */
+function altFor(file: FileNode) {
+  const words = file.name
+    .replace(/\.[^.]+$/, '')
+    .replace(/^\d+[-_ ]*/, '')
+    .replace(/[-_]+/g, ' ')
+    .trim()
+  const project = projectAt(file.path)?.meta?.name
+  const text = words ? words.charAt(0).toUpperCase() + words.slice(1) : file.name
+  return project ? `${project}: ${text}` : text
+}
+
+function isTyping(target: EventTarget | null) {
+  const el = target as HTMLElement | null
+  return !!el && (el.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName))
+}
+
 export function ImageView({ path }: { path?: string }) {
   const file = fileAt(path)
+  const ref = useRef<HTMLDivElement>(null)
   const siblings = useMemo(() => {
     if (!file) return []
     const dir = getNode(file.path.slice(0, file.path.lastIndexOf('/')) || '/')
     return dir?.type === 'dir' ? dir.children.filter((c): c is FileNode => c.type === 'file' && c.kind === 'image') : [file]
   }, [file])
   const [i, setI] = useState(() => Math.max(0, siblings.findIndex((s) => s.path === file?.path)))
+  const n = siblings.length
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowRight') setI((v) => (v + 1) % siblings.length)
-      if (e.key === 'ArrowLeft') setI((v) => (v - 1 + siblings.length) % siblings.length)
+      // Only the window on top flips pictures, and never while someone is typing.
+      const host = ref.current?.closest('.win')
+      if ((host && !host.classList.contains('active')) || isTyping(e.target) || e.altKey || e.ctrlKey || e.metaKey) return
+      if (e.key === 'ArrowRight') setI((v) => (v + 1) % n)
+      if (e.key === 'ArrowLeft') setI((v) => (v - 1 + n) % n)
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [siblings.length])
+  }, [n])
+  // Warm the cache for the neighbours so flipping feels instant.
+  useEffect(() => {
+    if (n < 2) return
+    for (const j of [i + 1, i - 1]) {
+      const src = siblings[(j + n) % n]?.src
+      if (src) new Image().src = src
+    }
+  }, [i, n, siblings])
   const current = siblings[i]
   if (!current) return <Missing />
   return (
-    <div className="imgview">
-      <img src={current.src} alt={current.name} />
-      {siblings.length > 1 && (
+    <div className="imgview" ref={ref}>
+      <img
+        key={current.src}
+        src={current.src}
+        alt={altFor(current)}
+        width={current.width}
+        height={current.height}
+        decoding="async"
+      />
+      {(n > 1 || current.full) && (
         <div className="imgview-bar">
-          <button type="button" onClick={() => setI((i - 1 + siblings.length) % siblings.length)} aria-label="Previous image">←</button>
-          <span>{current.name} · {i + 1}/{siblings.length}</span>
-          <button type="button" onClick={() => setI((i + 1) % siblings.length)} aria-label="Next image">→</button>
+          {n > 1 && (
+            <button type="button" onClick={() => setI((i - 1 + n) % n)} aria-label="Previous image">
+              ←
+            </button>
+          )}
+          <span aria-live="polite">
+            {current.name}
+            {n > 1 && ` · ${i + 1}/${n}`}
+          </span>
+          {n > 1 && (
+            <button type="button" onClick={() => setI((i + 1) % n)} aria-label="Next image">
+              →
+            </button>
+          )}
+          {current.full && (
+            <a className="imgview-full" href={current.full} target="_blank" rel="noreferrer">
+              Full size ↗
+            </a>
+          )}
         </div>
       )}
     </div>

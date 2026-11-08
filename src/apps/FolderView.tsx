@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react'
 import { getNode } from '../fs'
 import type { FsNode } from '../fs/types'
 import { openNode } from '../shell/opener'
@@ -12,6 +13,17 @@ interface Props {
 }
 
 export default function FolderView({ path, onNavigate, singleClick = false }: Props) {
+  const gridRef = useRef<HTMLUListElement>(null)
+  const shown = useRef(path)
+  // Moving to another folder replaces the button that had focus, so put focus on the new listing.
+  useEffect(() => {
+    if (shown.current === path) return
+    shown.current = path
+    const host = gridRef.current?.closest('.win, .ph-app')
+    if (host?.contains(document.activeElement) || document.activeElement === document.body) {
+      gridRef.current?.querySelector<HTMLElement>('.file')?.focus({ preventScroll: true })
+    }
+  }, [path])
   const node = getNode(path)
   if (!node || node.type !== 'dir') return <p className="missing">This folder no longer exists.</p>
   const parent = path === '/' ? null : path.slice(0, path.lastIndexOf('/')) || '/'
@@ -51,14 +63,19 @@ export default function FolderView({ path, onNavigate, singleClick = false }: Pr
           <strong>{meta.name}</strong> {meta.tagline}
         </p>
       )}
-      <ul className="folder-grid">
+      <ul className="folder-grid" ref={gridRef} aria-label={`Files in ${parts[parts.length - 1] ?? 'home'}`}>
         {node.children.map((c) => (
           <li key={c.path}>
             <button
               type="button"
               className="file"
               onDoubleClick={() => activate(c)}
-              onKeyDown={(e) => e.key === 'Enter' && activate(c)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault()
+                  activate(c)
+                }
+              }}
               onClick={(e) => {
                 // Touch screens have no double-click, so a tap opens.
                 if (singleClick || (e.nativeEvent as PointerEvent).pointerType === 'touch') activate(c)

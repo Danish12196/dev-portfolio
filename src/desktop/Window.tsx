@@ -1,11 +1,28 @@
-import { useRef, type PointerEvent as RPointerEvent, type ReactNode } from 'react'
+import { useEffect, useRef, type PointerEvent as RPointerEvent, type ReactNode } from 'react'
+import { focusTopWindow } from '../shell/focus'
 import { useWindows, type Win } from '../store/windows'
 
 type Edge = 'move' | 'e' | 's' | 'se' | 'w' | 'sw'
 
 export default function Window({ win, active, children }: { win: Win; active: boolean; children: ReactNode }) {
   const { focus, close, minimize, toggleMaximize, setBounds } = useWindows()
+  const ref = useRef<HTMLElement>(null)
   const drag = useRef<{ edge: Edge; sx: number; sy: number; x: number; y: number; w: number; h: number } | null>(null)
+
+  // A new window takes keyboard focus (unless its content already grabbed it, like the terminal prompt).
+  useEffect(() => {
+    const el = ref.current
+    if (active && el && !el.contains(document.activeElement)) el.focus({ preventScroll: true })
+    // Only on mount: later focus changes come from the user.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  /** After closing or minimising, hand focus to the next window so keyboard users are not dropped on <body>. */
+  function handOff(action: () => void) {
+    const hadFocus = ref.current?.contains(document.activeElement)
+    action()
+    if (hadFocus) requestAnimationFrame(focusTopWindow)
+  }
 
   function start(edge: Edge) {
     return (e: RPointerEvent) => {
@@ -50,23 +67,38 @@ export default function Window({ win, active, children }: { win: Win; active: bo
 
   return (
     <section
+      ref={ref}
+      tabIndex={-1}
+      data-win={win.id}
       className={`win${active ? ' active' : ''}${win.maximized ? ' max' : ''} win-${win.kind}`}
       style={{ ...style, ['--win-color' as string]: win.color }}
       onPointerDown={() => focus(win.id)}
-      aria-label={win.title}
+      // Tabbing into a window behind others brings it to the front (programmatic focus does not).
+      onFocus={(e) => e.relatedTarget && !active && focus(win.id)}
+      onKeyDown={(e) => {
+        // Escape closes menus first; inside a window it is free for content, so use Alt+W to close.
+        if (e.altKey && (e.key === 'w' || e.key === 'W')) {
+          e.preventDefault()
+          handOff(() => close(win.id))
+        }
+      }}
+      aria-labelledby={`${win.id}-title`}
       hidden={win.minimized}
     >
       <header className="win-bar" {...handle('move')} onDoubleClick={() => toggleMaximize(win.id)}>
         <span className={`win-glyph win-glyph-${win.kind}`} aria-hidden="true" />
-        <span className="win-title">{win.title}</span>
+        <span className="win-title" id={`${win.id}-title`}>
+          {win.title}
+        </span>
         <div className="win-buttons">
-          <button type="button" className="b-min" onClick={() => minimize(win.id)} aria-label={`Minimise ${win.title}`} title="Minimise">
+          <button type="button" className="b-min" onClick={() => handOff(() => minimize(win.id))} aria-label={`Minimise ${win.title}`} title="Minimise">
             –
           </button>
-          <button type="button" className="b-max" onClick={() => toggleMaximize(win.id)} aria-label={`Maximise ${win.title}`} title="Maximise">
+          <button type="button" className="b-max" onClick={() => toggleMaximize(win.id)} aria-label={win.maximized ? `Restore ${win.title}` : `Maximise ${win.title}`}
+            title={win.maximized ? 'Restore' : 'Maximise'}>
             +
           </button>
-          <button type="button" className="b-close" onClick={() => close(win.id)} aria-label={`Close ${win.title}`} title="Close">
+          <button type="button" className="b-close" onClick={() => handOff(() => close(win.id))} aria-label={`Close ${win.title}`} title="Close">
             ×
           </button>
         </div>
@@ -84,3 +116,4 @@ export default function Window({ win, active, children }: { win: Win; active: bo
     </section>
   )
 }
+
