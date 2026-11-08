@@ -57,8 +57,8 @@ function place(w: number, h: number, offset: number) {
   return {
     w: width,
     h: height,
-    x: Math.max(12, Math.round((vw - width) / 2) + offset),
-    y: Math.max(12, Math.round((vh - height) / 2) + offset),
+    x: Math.max(12, Math.min(vw - width - 12, Math.round((vw - width) / 2) + offset)),
+    y: Math.max(12, Math.min(vh - height - 12, Math.round((vh - height) / 2) + offset)),
   }
 }
 
@@ -89,8 +89,9 @@ export const useWindows = create<WindowState>()(
           minimized: false,
           maximized: false,
           z: topZ + 1,
-          ...place(spec.w ?? dw, spec.h ?? dh, offset),
           ...spec,
+          // Placed last so a requested size (a game's) is still clamped to the screen.
+          ...place(spec.w ?? dw, spec.h ?? dh, offset),
         }
         set({ topZ: topZ + 1, windows: [...windows, win] })
         return id
