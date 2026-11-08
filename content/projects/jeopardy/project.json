@@ -1,0 +1,9 @@
+{
+  "name": "Jeopardy",
+  "tagline": "A homemade quiz game to play with friends",
+  "year": 2026,
+  "stack": ["TypeScript", "Go"],
+  "status": "live",
+  "color": "#3b4bd8",
+  "order": 2
+}
