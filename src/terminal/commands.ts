@@ -2,17 +2,11 @@ import { displayPath, findApp, findProject, getNode, projects, resolvePath, root
 import type { DirNode, FsNode } from '../fs/types'
 import { openNode } from '../shell/opener'
 import { setTheme } from '../shell/theme'
+import { EGG_COMMANDS, HIDDEN_FILES } from './eggs'
+import { findEgg } from './found'
+import { cmd, err, txt, type Line, type Seg } from './lines'
 
-export interface Seg {
-  t: string
-  cls?: 'dim' | 'accent' | 'err' | 'dir' | 'bold'
-  /** Clicking opens this file system path. */
-  open?: string
-  /** Clicking runs this command. */
-  run?: string
-  href?: string
-}
-export type Line = Seg[]
+export type { Line, Seg } from './lines'
 
 export interface Ctx {
   cwd: string
@@ -22,14 +16,14 @@ export interface Ctx {
   exit: () => void
 }
 
-interface Command {
+export interface Command {
   desc: string
   usage?: string
+  /** Left out of help and tab completion. Finding it is the fun. */
+  hidden?: boolean
   run: (args: string[], ctx: Ctx) => void
 }
 
-const txt = (t: string, cls?: Seg['cls']): Seg => ({ t, cls })
-const err = (t: string): Line => [txt(t, 'err')]
 
 function nodeSeg(node: FsNode): Seg {
   if (node.type === 'dir') return { t: node.name + '/', cls: 'dir', open: node.path }
@@ -46,20 +40,31 @@ export const COMMANDS: Record<string, Command> = {
     run: (_a, { print }) => {
       print([txt('Commands', 'bold')])
       for (const [name, c] of Object.entries(COMMANDS)) {
+        if (c.hidden) continue
         print([{ t: (c.usage ?? name).padEnd(22), cls: 'accent', run: name }, txt(c.desc, 'dim')])
       }
       print([txt('Tip: Tab completes names, ↑ recalls history, and anything underlined is clickable.', 'dim')])
+      print([txt('A few commands are not on this list. ', 'dim'), cmd('eggs'), txt(' keeps score.', 'dim')])
     },
   },
   ls: {
     desc: 'list a folder',
     usage: 'ls [folder]',
-    run: (args, { cwd, print }) => {
+    run: (argv, { cwd, print }) => {
+      const all = argv.some((a) => /^-\w*a/.test(a))
+      const args = argv.filter((a) => !a.startsWith('-'))
       const path = resolvePath(args[0] ?? '.', cwd)
       const node = getNode(path)
       if (!node) return print(err(`ls: ${args[0]}: no such file or folder`))
       if (node.type === 'file') return print([nodeSeg(node)])
       const segs: Seg[] = []
+      if (all) {
+        segs.push(txt('./', 'dir'), txt('  '), txt('../', 'dir'))
+        for (const p of Object.keys(HIDDEN_FILES).filter((h) => resolvePath('..', h) === node.path)) {
+          segs.push(txt('  '), { t: p.split('/').pop()!, cls: 'dim', run: `cat ${p}` })
+        }
+        if (node.children.length) segs.push(txt('  '))
+      }
       node.children.forEach((c, i) => {
         if (i) segs.push(txt('  '))
         segs.push(nodeSeg(c))
@@ -71,6 +76,10 @@ export const COMMANDS: Record<string, Command> = {
     desc: 'change folder',
     usage: 'cd <folder>',
     run: (args, { cwd, setCwd, print }) => {
+      if (cwd === '/' && /^\/?\.\.(\/|$)/.test(args[0] ?? '')) {
+        findEgg('escape')
+        return print([txt("cd: you're already home. There is nothing above it. (I checked.)", 'dim')])
+      }
       const path = resolvePath(args[0] ?? '~', cwd)
       const node = getNode(path)
       if (!node) return print(err(`cd: ${args[0]}: no such folder`))
@@ -87,7 +96,13 @@ export const COMMANDS: Record<string, Command> = {
     usage: 'cat <file>',
     run: (args, { cwd, print }) => {
       if (!args[0]) return print(err('cat: which file? Try `cat about.md`'))
-      const node = getNode(resolvePath(args[0], cwd))
+      const path = resolvePath(args[0], cwd)
+      if (HIDDEN_FILES[path]) {
+        findEgg('dotfile')
+        return print(...textLines(HIDDEN_FILES[path]))
+      }
+      // `cat about.txt` and friends find the .md version.
+      const node = getNode(path) ?? getNode(path.replace(/\.txt$/i, '.md'))
       if (!node) return print(err(`cat: ${args[0]}: no such file`))
       if (node.type === 'dir') return print(err(`cat: ${args[0]}: is a folder (try \`ls ${args[0]}\`)`))
       if (node.text != null) return print(...textLines(node.text))
@@ -172,7 +187,10 @@ export const COMMANDS: Record<string, Command> = {
     desc: 'close the terminal and show the desktop',
     run: (_a, { exit }) => exit(),
   },
+  ...EGG_COMMANDS,
 }
+
+const visible = () => Object.keys(COMMANDS).filter((c) => !COMMANDS[c].hidden)
 
 function distance(a: string, b: string) {
   const dp = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)])
@@ -191,7 +209,7 @@ export function execute(input: string, ctx: Ctx) {
   // Typing a project name on its own opens it.
   const project = findProject(name)
   if (project) return COMMANDS.open.run([project.name], ctx)
-  const best = Object.keys(COMMANDS).sort((a, b) => distance(name, a) - distance(name, b))[0]
+  const best = visible().sort((a, b) => distance(name, a) - distance(name, b))[0]
   ctx.print([
     txt(`${name}: command not found.`, 'err'),
     ...(distance(name, best) <= 2 ? [txt(' Did you mean ', 'dim'), { t: best, cls: 'accent' as const, run: best }, txt('?', 'dim')] : []),
@@ -206,7 +224,7 @@ export function complete(input: string, cwd: string): string {
   const parts = input.split(' ')
   const last = parts[parts.length - 1]
   if (parts.length === 1) {
-    const hits = Object.keys(COMMANDS).filter((c) => c.startsWith(last.toLowerCase()))
+    const hits = visible().filter((c) => c.startsWith(last.toLowerCase()))
     return hits.length === 1 ? hits[0] + ' ' : input
   }
   const slash = last.lastIndexOf('/')
@@ -223,7 +241,7 @@ export function complete(input: string, cwd: string): string {
 
 export const WELCOME: Line[] = [
   [txt('Dev portfolio', 'bold'), txt(` · ${projects().length} projects in `, 'dim'), { t: '~/projects', cls: 'dir', open: '/projects' }],
-  [txt('Type ', 'dim'), { t: 'help', cls: 'accent', run: 'help' }, txt(' to look around, ', 'dim'), { t: 'projects', cls: 'accent', run: 'projects' }, txt(' for the list, or ', 'dim'), { t: 'exit', cls: 'accent', run: 'exit' }, txt(' for the desktop.', 'dim')],
+  [txt('Type ', 'dim'), cmd('help'), txt(' to look around, ', 'dim'), cmd('projects'), txt(' for the list, or ', 'dim'), cmd('exit'), txt(' for the desktop.', 'dim')],
 ]
 
 export { root }
