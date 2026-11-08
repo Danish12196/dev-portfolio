@@ -27,7 +27,7 @@ export default function Window({ win, active, children }: { win: Win; active: bo
     const minH = 200
     if (d.edge === 'move') {
       const maxX = window.innerWidth - 80
-      const maxY = window.innerHeight - 28 - 80
+      const maxY = window.innerHeight - 54 - 60
       return setBounds(win.id, { x: Math.min(maxX, Math.max(-d.w + 80, d.x + dx)), y: Math.min(maxY, Math.max(0, d.y + dy)) })
     }
     const b: Partial<Win> = {}
@@ -57,16 +57,17 @@ export default function Window({ win, active, children }: { win: Win; active: bo
       hidden={win.minimized}
     >
       <header className="win-bar" {...handle('move')} onDoubleClick={() => toggleMaximize(win.id)}>
+        <span className={`win-glyph win-glyph-${win.kind}`} aria-hidden="true" />
         <span className="win-title">{win.title}</span>
         <div className="win-buttons">
-          <button type="button" onClick={() => minimize(win.id)} aria-label={`Minimise ${win.title}`} title="Minimise">
-            <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M1 8h8" /></svg>
+          <button type="button" className="b-min" onClick={() => minimize(win.id)} aria-label={`Minimise ${win.title}`} title="Minimise">
+            –
           </button>
-          <button type="button" onClick={() => toggleMaximize(win.id)} aria-label={`Maximise ${win.title}`} title="Maximise">
-            <svg viewBox="0 0 10 10" aria-hidden="true"><rect x="1.5" y="1.5" width="7" height="7" /></svg>
+          <button type="button" className="b-max" onClick={() => toggleMaximize(win.id)} aria-label={`Maximise ${win.title}`} title="Maximise">
+            +
           </button>
-          <button type="button" className="close" onClick={() => close(win.id)} aria-label={`Close ${win.title}`} title="Close">
-            <svg viewBox="0 0 10 10" aria-hidden="true"><path d="M2 2l6 6M8 2l-6 6" /></svg>
+          <button type="button" className="b-close" onClick={() => close(win.id)} aria-label={`Close ${win.title}`} title="Close">
+            ×
           </button>
         </div>
       </header>

@@ -4,6 +4,7 @@ import type { FsNode } from '../fs/types'
 import Icon from '../apps/Icon'
 import { specFor, WindowContent } from '../apps/registry'
 import { registerOpener } from '../shell/opener'
+import Wallpaper from '../desktop/Wallpaper'
 import type { OpenSpec } from '../store/windows'
 
 function StatusBar() {
@@ -41,19 +42,21 @@ export default function Phone() {
   const back = () => setStack((s) => s.slice(0, -1))
   const current = stack[stack.length - 1]
   const about = getNode('/about.md')
+  const files = getNode('/projects')
   const open = (spec: OpenSpec) => setStack((s) => [...s, spec])
 
   return (
     <div className="phone">
+      <Wallpaper compact />
       <StatusBar />
       {current ? (
         <div className="ph-app">
-          <header className="ph-app-bar" style={{ ['--win-color' as string]: current.color }}>
-            <button type="button" onClick={back} aria-label="Back">
-              ‹ Back
+          <header className="ph-app-bar" style={{ ['--ic-color' as string]: current.color }}>
+            <button type="button" className="round-btn" onClick={back} aria-label="Back">
+              ‹
             </button>
             <span>{current.title}</span>
-            <button type="button" onClick={() => setStack([])} aria-label="Home">
+            <button type="button" className="ph-home-btn" onClick={() => setStack([])}>
               Home
             </button>
           </header>
@@ -73,28 +76,54 @@ export default function Phone() {
         </div>
       ) : (
         <main className="ph-home">
-          <h1 className="ph-hello">Danish Ali</h1>
+          <div className="ph-hello">
+            <div className="ph-kicker">dev/portfolio</div>
+            <h1>
+              Hi, I&apos;m
+              <br />
+              Danish
+            </h1>
+            <p>Apps, games and the odd homelab tool</p>
+          </div>
           <ul className="ph-grid">
             {projects().map((p) => (
               <li key={p.path}>
                 <button type="button" onClick={() => open(specFor(p))}>
-                  <Icon node={p} size={56} />
+                  <span className="ic ic-xl ic-tile ic-app" style={{ ['--ic-color' as string]: p.meta?.color }} aria-hidden="true">
+                    {(p.meta?.name ?? p.name).slice(0, 1).toUpperCase()}
+                  </span>
                   <span>{p.meta?.name ?? p.name}</span>
                 </button>
               </li>
             ))}
+            {about && (
+              <li>
+                <button type="button" onClick={() => open(specFor(about))}>
+                  <span className="ic ic-xl ic-tile ic-about" aria-hidden="true">
+                    da
+                  </span>
+                  <span>About</span>
+                </button>
+              </li>
+            )}
           </ul>
           <nav className="ph-dock" aria-label="Dock">
             <button type="button" onClick={() => open({ kind: 'terminal', title: 'Terminal' })}>
-              <Icon node="terminal" size={48} />
+              <Icon node="terminal" size="lg" />
               <span>Terminal</span>
             </button>
-            {about && (
-              <button type="button" onClick={() => open(specFor(about))}>
-                <Icon node="about" size={48} />
-                <span>About</span>
+            {files && (
+              <button type="button" onClick={() => open(specFor(files))}>
+                <Icon node={files} size="lg" color="var(--btn-min)" />
+                <span>Files</span>
               </button>
             )}
+            <a href="https://github.com/Danish12196" target="_blank" rel="noreferrer">
+              <span className="ic ic-lg ic-tile ic-contact" aria-hidden="true">
+                @
+              </span>
+              <span>GitHub</span>
+            </a>
           </nav>
         </main>
       )}
