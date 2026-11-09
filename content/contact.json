@@ -3,10 +3,19 @@
   "role": "Developer",
   "location": "Dubai, UAE",
   "timezone": "Asia/Dubai",
-  "email": "",
+  "email": "danishalidev@gmail.com",
   "links": [
-    { "label": "GitHub", "url": "https://github.com/Danish12196" },
-    { "label": "itch.io", "url": "https://danish-gamedev.itch.io" },
-    { "label": "LinkedIn", "url": "" }
+    {
+      "label": "LinkedIn",
+      "url": "https://www.linkedin.com/in/danishali121/"
+    },
+    {
+      "label": "GitHub",
+      "url": "https://github.com/Danish12196"
+    },
+    {
+      "label": "itch.io",
+      "url": "https://danish-gamedev.itch.io"
+    }
   ]
 }

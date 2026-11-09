@@ -2,9 +2,22 @@
   The CV shown in the "CV & contact" window, by `cv`, and by `cat cv.md`.
   Contact details (email, links) live in contact.json; empty ones are hidden.
   Drop a cv.pdf next to this file and the window offers it as a download.
-  Lines marked GUESS were inferred from GitHub and the project write-ups:
-  check them before sending this to anyone.
+
+  While the line "coming soon" below is here, the window shows this short note
+  and hides the print button. Delete it once the real CV is in.
 -->
+<!-- coming soon -->
+
+# Danish Ali
+
+## CV coming soon
+
+I'm rewriting my CV at the moment. Until it's up, the projects on this desktop
+say more than a page would, and the email above is the quickest way to reach me.
+
+<!--
+  The earlier draft, built from the project write-ups and GitHub, in case any of
+  it is useful for the new version. Lines marked GUESS were inferred.
 
 # Danish Ali
 
@@ -15,7 +28,7 @@ lately there's a model in most of them too.
 ## Education
 
 **Master of Applied Artificial Intelligence**, University of Wollongong in
-Dubai. In progress, 2026. <!-- GUESS: start year and expected finish not known -->
+Dubai. In progress, 2026. ( GUESS: start year and expected finish not known )
 
 - *Deep Learning for Visual Data (MAAI901):* benchmarked ViT, ConvNeXt, CLIP
   and DINOv2 on classifying camouflaged animals in COD10K, and built an
@@ -24,14 +37,14 @@ Dubai. In progress, 2026. <!-- GUESS: start year and expected finish not known -
   spending categories with scikit-learn and answers questions about them with
   Qwen2.5 running in the browser through WebLLM.
 
-<!-- TODO: earlier degree, if you want it here -->
+( TODO: earlier degree, if you want it here )
 
-<!-- TODO: work experience. Nothing on GitHub says where you've worked, so this
+( TODO: work experience. Nothing on GitHub says where you've worked, so this
      section is left out until you add it, e.g.
 ## Experience
 **Role**, Company · 2023 to now
 - What you built, and what changed because of it
--->
+)
 
 ## Projects
 
@@ -44,7 +57,7 @@ Dubai. In progress, 2026. <!-- GUESS: start year and expected finish not known -
 - **This site** (2026): a portfolio that runs as a tiny desktop OS with a
   working terminal. React, TypeScript, Vite, Zustand.
 - **Homelab:** self-hosted services and small tools for them, including a
-  year-in-review for Jellyfin watch history. <!-- GUESS: from the jellyfin-rewind and portainer repos -->
+  year-in-review for Jellyfin watch history. ( GUESS: from the jellyfin-rewind and portainer repos )
 
 ## Game jams
 
@@ -56,8 +69,9 @@ All made in Unity with C#, and playable on this site.
 
 ## Skills
 
-- **Languages:** TypeScript, JavaScript, Python, Go, C# <!-- GUESS: Go from the chat app and Jeopardy backend repos -->
+- **Languages:** TypeScript, JavaScript, Python, Go, C# ( GUESS: Go from the chat app and Jeopardy backend repos )
 - **Web:** React, Vite, Zustand, PocketBase, Vercel
 - **Machine learning:** PyTorch, scikit-learn, vision transformers, CLIP,
   DINOv2, ONNX, WebLLM
-- **Other:** Unity, Docker and Portainer, Linux homelab <!-- GUESS: Docker/Portainer from the portainer repo -->
+- **Other:** Unity, Docker and Portainer, Linux homelab ( GUESS: Docker/Portainer from the portainer repo )
+-->
