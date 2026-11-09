@@ -1,10 +1,11 @@
 {
   "name": "Fuloos",
-  "tagline": "An app for keeping track of money",
+  "tagline": "A money tracker that understands UAE bank SMS",
   "year": 2026,
   "stack": [
     "TypeScript",
-    "React"
+    "React",
+    "PocketBase"
   ],
   "status": "live",
   "color": "#7CC9A0",

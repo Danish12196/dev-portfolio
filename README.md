@@ -146,6 +146,6 @@ Cloudflare and points `danishali.dev` at Vercel.
 
 ## To do
 
-- Replace the placeholder write-ups in `content/` (marked `TODO(Danish)`).
+- Read through the drafted write-ups in `content/` and put them in your own words.
 - Add the other projects (Pan, HomeHub, Actual Budget Import) once they have
   danishali.dev subdomains.

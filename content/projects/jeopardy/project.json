@@ -4,7 +4,8 @@
   "year": 2026,
   "stack": [
     "TypeScript",
-    "Go"
+    "React",
+    "PocketBase"
   ],
   "status": "live",
   "color": "#93A6F2",
