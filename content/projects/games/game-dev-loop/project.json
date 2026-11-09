@@ -1,0 +1,12 @@
+{
+  "name": "Game Dev Loop",
+  "tagline": "My spiral of indecision during a game jam, jumping genres as deadlines hit",
+  "year": 2025,
+  "stack": ["Unity", "WebGL", "3D"],
+  "status": "playable",
+  "color": "#7FC8E8",
+  "order": 1,
+  "itch": "https://danish-gamedev.itch.io/game-dev-loop",
+  "jam": "GMTK Game Jam 2025",
+  "cover": "media/01-cover.jpg"
+}

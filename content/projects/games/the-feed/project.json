@@ -1,0 +1,12 @@
+{
+  "name": "The Feed",
+  "tagline": "Control the news feed and promote the nation's message",
+  "year": 2026,
+  "stack": ["Unity", "WebGL"],
+  "status": "playable",
+  "color": "#D9CBB3",
+  "order": 3,
+  "itch": "https://danish-gamedev.itch.io/the-feed",
+  "jam": "Pakistan Game Jam",
+  "cover": "media/01-cover.jpg"
+}

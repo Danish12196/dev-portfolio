@@ -174,6 +174,8 @@ async function walk(dir, path) {
       const app = readJson(full)
       node.url = app.url
       node.title = app.title
+      // Games ask for their window to open at the size they were built for.
+      if (app.width && app.height) Object.assign(node, { width: app.width, height: app.height })
     }
     if (COPY.has(kind)) {
       const dest = join(OUT_ASSETS, childPath)
@@ -197,6 +199,13 @@ async function walk(dir, path) {
   }
 
   attachPosters(children)
+
+  // "cover": "media/01-cover.jpg" in project.json shows that image on the project's README.
+  if (meta?.cover) {
+    const cover = meta.cover.split('/').reduce((dir, part) => dir?.children?.find((c) => c.name === part), { children })
+    if (!cover?.src) throw new Error(`${join(dir, 'project.json')}: cover ${meta.cover} is not an image in that folder`)
+    meta = { ...meta, cover: cover.src }
+  }
 
   if (meta?.repo && !children.some((c) => c.name === 'media')) {
     const media = await repoMedia(meta, path)

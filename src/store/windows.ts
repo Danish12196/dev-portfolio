@@ -109,8 +109,9 @@ export const useWindows = create<WindowState>()(
           minimized: false,
           maximized: false,
           z: topZ + 1,
-          ...place(spec.w ?? dw, spec.h ?? dh, below),
           ...spec,
+          // Placed last so a requested size (a game's) is still clamped to the screen.
+          ...place(spec.w ?? dw, spec.h ?? dh, below),
         }
         set({ topZ: topZ + 1, windows: [...windows, win] })
         return id

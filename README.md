@@ -71,6 +71,15 @@ University projects keep their media in this repo instead, under each project's
 }
 ```
 
+### Games
+
+`content/projects/games/` holds my itch.io jam games, one folder each. A game's
+`.app` takes `"width"` and `"height"` so its window opens at the size the build
+was made for, and points at the build's `html-classic.itch.zone` URL (copy it
+from the iframe on the itch.io page). `project.json` can also have
+`"cover": "media/01-cover.jpg"` to put the cover art on top of the README, and
+`"jam"` for the game jam it was made for. `itch.link` becomes an itch.io button.
+
 Anything else in the folder shows up too: `.md` files render as documents,
 images and video get viewers, PDFs open in a PDF window, and any other file
 opens as plain text. `content/about.md` is the About page and the output of

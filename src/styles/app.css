@@ -865,6 +865,15 @@ button {
   flex-direction: column;
   gap: 20px;
 }
+.proj-cover {
+  display: block;
+  width: 100%;
+  max-height: 320px;
+  object-fit: contain;
+  border: var(--stroke) solid var(--ink);
+  border-radius: var(--radius);
+  background: var(--chip);
+}
 .proj-title {
   display: flex;
   align-items: center;

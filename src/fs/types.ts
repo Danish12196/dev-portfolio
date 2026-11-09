@@ -12,6 +12,10 @@ export interface ProjectMeta {
   repo?: string
   /** folder in that repo holding them, default portfolio */
   media?: string
+  /** URL of the cover image shown on the README (written in project.json as a path in the folder) */
+  cover?: string
+  /** the game jam a game was made for */
+  jam?: string
 }
 
 export interface FileNode {
@@ -27,7 +31,8 @@ export interface FileNode {
   poster?: string
   /** images: the original file when src is a smaller copy */
   full?: string
-  /** images: pixel size of src, so the viewer can reserve space */
+  /** images: pixel size of src, so the viewer can reserve space;
+   *  apps: the size the window should open at (the game's own size) */
   width?: number
   height?: number
 }
