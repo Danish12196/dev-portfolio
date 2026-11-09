@@ -93,6 +93,21 @@ opens as plain text. `content/about.md` is the About page and the output of
 
 Tab completes commands and paths; the up and down arrows recall history.
 
+### Just for fun
+
+| Command | What it does |
+| --- | --- |
+| `neofetch` | system info, the classic way |
+| `games` | the itch.io games, read from `/projects/games` when that folder exists |
+| `snake`, `guess` | mini games (snake works with swipes on a phone) |
+| `matrix` | digital rain, any key leaves |
+| `fortune`, `cowsay <text>` | developer fortunes, and a cow to say them |
+| `skin <name>` | recolour the terminal (green comes back on reload) |
+| `history`, `eggs` | your past commands, and how many secrets you've found |
+
+There are also ten hidden secrets that don't show in `help` or tab completion.
+They live in `src/terminal/eggs.ts` and `src/terminal/found.ts`; no spoilers here.
+
 ## How it's built
 
 React, TypeScript and Vite, with Zustand for window state. The desktop and the
