@@ -4,6 +4,7 @@ import type { OpenSpec, Win } from '../store/windows'
 import { CV_PATH } from '../shell/contact'
 import CvView from './CvView'
 import FolderView from './FolderView'
+import StatsView from './StatsView'
 import Guestbook from './Guestbook'
 import Updates from './Updates'
 import Terminal from './Terminal'
@@ -57,6 +58,8 @@ export function WindowContent({ win, opts }: { win: Pick<Win, 'kind' | 'path' | 
       return <VideoView path={win.path} />
     case 'pdf':
       return <PdfView path={win.path} />
+    case 'stats':
+      return <StatsView />
     case 'cv':
       return <CvView />
     case 'guestbook':

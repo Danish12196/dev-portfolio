@@ -113,6 +113,7 @@ becomes a download of that file instead.
 | `play jeopardy` | launch Jeopardy |
 | `projects` | table of every project |
 | `whoami` | about me |
+| `stats` | GitHub streaks, languages, recent commits and site visits (`stats -w` opens the window) |
 | `cv` | open the CV & contact window |
 | `contact` | email, links and my local time |
 | `theme light` / `theme dark` | switch theme |
@@ -136,6 +137,38 @@ Tab completes commands and paths; the up and down arrows recall history.
 There are also ten hidden secrets that don't show in `help` or tab completion.
 They live in `src/terminal/eggs.ts` and `src/terminal/found.ts`; no spoilers here.
 
+## Stats
+
+The Stats window (desktop icon, start menu, phone home screen or `stats -w`)
+shows a contribution heatmap and streaks, languages, recent commits, itch.io
+views and visits to this site.
+
+- **GitHub and itch.io numbers** are fetched once per deploy by
+  `scripts/build-stats.mjs` into `public/stats.json`, so visitors never call
+  GitHub and no rate limit is reached from the browser. If a source fails during
+  a build, the numbers from the live site's `stats.json` are kept. Optional
+  Vercel environment variables: `GITHUB_TOKEN` (a token with no scopes; exact
+  counts and a higher rate limit) and `ITCH_API_KEY` (itch.io > Settings > API
+  keys; without it the itch.io section is hidden).
+- **Visits and average time on the site** come from `api/visit.ts`, which
+  stores them on PocketBase. Each page load is one row holding only the seconds
+  the tab was visible (capped at 30 minutes). No cookies and nothing in the
+  browser's storage: the page keeps a random id in memory so later reports add
+  to the same row, and forgets it on reload. Rate limiting uses the IP hashed
+  with a salt that changes every day. Browsers with Do Not Track or Global
+  Privacy Control are not counted. Until it's set up, the visits rows are hidden.
+
+  Setting it up once:
+
+  ```sh
+  # Windows cmd
+  set "PB_EMAIL=you@example.com" && set "PB_PASSWORD=..." && node scripts/setup-visits.mjs
+  ```
+
+  It only adds the `site_visits` and `site_visit_totals` collections. Add the
+  `VISITS_KEY` it prints to the Vercel project's environment variables and
+  redeploy.
+
 ## How it's built
 
 React, TypeScript and Vite, with Zustand for window state. The desktop and the
@@ -144,6 +177,8 @@ phone UI share the same file tree and the same viewers.
 ```
 content/              projects and about page (edit these)
 scripts/              build-content.mjs: content/ -> src/generated/fs.json
+                      build-stats.mjs: GitHub and itch.io numbers -> public/stats.json
+api/visit.ts          anonymous visit and time-on-site counter (Vercel function)
 src/fs/               file tree helpers (paths, lookups)
 src/store/windows.ts  window manager state, saved to localStorage
 src/terminal/         terminal commands and tab completion

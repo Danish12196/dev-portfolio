@@ -4,7 +4,7 @@ import type { DirNode, FsNode } from '../fs/types'
 import { specFor, WindowContent } from '../apps/registry'
 import Icon from '../apps/Icon'
 import { formatUpdated, NOW_PATH, readNow } from '../apps/now'
-import { hasWallpaperPicker, openGuestbook, openNode, openTerminal, openUpdates, openWallpaperPicker, registerOpener, viewSource } from '../shell/opener'
+import { hasWallpaperPicker, openGuestbook, openNode, openStats, openTerminal, openUpdates, openWallpaperPicker, registerOpener, viewSource } from '../shell/opener'
 import { useTheme } from '../shell/theme'
 import { topWindowId, useWindows, type Win } from '../store/windows'
 import Wallpaper from './Wallpaper'
@@ -102,6 +102,9 @@ function StartMenu({ onClose }: { onClose: () => void }) {
         )}
         <button type="button" className="pill" onClick={() => (openTerminal(), onClose())}>
           Terminal
+        </button>
+        <button type="button" className="pill" onClick={() => (openStats(), onClose())}>
+          Stats
         </button>
         <button type="button" className="pill" onClick={() => (openGuestbook(), onClose())}>
           Guestbook
@@ -271,6 +274,7 @@ interface MenuItem {
 /** The right-click menu on the desktop. Arrow keys move, Enter picks, Escape or a click elsewhere closes it. */
 function ContextMenu({ x, y, items, onClose }: { x: number; y: number; items: (MenuItem | 'sep')[]; onClose: () => void }) {
   const ref = useRef<HTMLUListElement>(null)
+  const picked = useRef(false)
   const [pos, setPos] = useState({ x, y })
   useEffect(() => {
     const menu = ref.current
@@ -281,7 +285,12 @@ function ContextMenu({ x, y, items, onClose }: { x: number; y: number; items: (M
     setPos({ x: Math.max(8, Math.min(x, window.innerWidth - menu.offsetWidth - 8)), y: Math.max(8, Math.min(y, bottom - menu.offsetHeight)) })
     const opener = document.activeElement as HTMLElement | null
     menu.querySelector<HTMLElement>('button')?.focus()
-    return () => opener?.focus?.()
+    return () => {
+      // A picked item may have opened or focused a window on purpose, so only hand focus back on Escape or a click away.
+      if (picked.current) return
+      const now = document.activeElement
+      if (!now || now === document.body || menu.contains(now)) opener?.focus?.()
+    }
   }, [x, y])
   useEffect(() => {
     const onDown = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && onClose()
@@ -315,8 +324,9 @@ function ContextMenu({ x, y, items, onClose }: { x: number; y: number; items: (M
               type="button"
               role="menuitem"
               onClick={() => {
-                onClose()
+                picked.current = true
                 it.run()
+                onClose()
               }}
             >
               {it.label}
@@ -329,7 +339,7 @@ function ContextMenu({ x, y, items, onClose }: { x: number; y: number; items: (M
   )
 }
 
-function DeskIcon({ node, label, onOpen, color }: { node: FsNode | 'terminal' | 'guestbook'; label: string; onOpen: () => void; color?: string }) {
+function DeskIcon({ node, label, onOpen, color }: { node: FsNode | 'terminal' | 'guestbook' | 'stats'; label: string; onOpen: () => void; color?: string }) {
   return (
     <li>
       <button
@@ -400,6 +410,7 @@ export default function Desktop() {
             <DeskIcon key={p.path} node={p} label={p.name} onOpen={() => openNode(p)} />
           ))}
           <DeskIcon node="terminal" label="terminal" onOpen={openTerminal} />
+          <DeskIcon node="stats" label="stats" onOpen={openStats} />
           {about && <DeskIcon node={about} label="about me" onOpen={() => openNode(about)} />}
           {cv && <DeskIcon node={cv} label="cv & contact" onOpen={() => openNode(cv)} />}
           <DeskIcon node="guestbook" label="guestbook" onOpen={openGuestbook} />
@@ -440,6 +451,7 @@ export default function Desktop() {
             { label: theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode', run: () => setTheme(theme === 'dark' ? 'light' : 'dark') },
             'sep',
             { label: 'Open terminal', run: openTerminal },
+            { label: 'Stats', run: openStats },
             { label: 'System updates', run: openUpdates },
             { label: 'View source', hint: '↗', run: viewSource },
           ]}

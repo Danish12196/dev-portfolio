@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type WindowKind = 'terminal' | 'folder' | 'markdown' | 'text' | 'image' | 'video' | 'pdf' | 'app' | 'cv' | 'guestbook' | 'updates'
+export type WindowKind = 'terminal' | 'folder' | 'markdown' | 'text' | 'image' | 'video' | 'pdf' | 'app' | 'cv' | 'guestbook' | 'stats' | 'updates'
 
 export interface Win {
   id: string
@@ -49,6 +49,7 @@ const DEFAULT_SIZE: Record<WindowKind, [number, number]> = {
   video: [760, 480],
   pdf: [720, 640],
   app: [1024, 680],
+  stats: [660, 620],
   cv: [780, 680],
   guestbook: [600, 640],
   updates: [560, 600],
@@ -57,7 +58,7 @@ const DEFAULT_SIZE: Record<WindowKind, [number, number]> = {
 let counter = 0
 
 /** Kinds that only ever have one window. */
-const SINGLETONS = new Set<WindowKind>(['terminal', 'guestbook', 'updates'])
+const SINGLETONS = new Set<WindowKind>(['terminal', 'guestbook', 'stats', 'updates'])
 
 const TASKBAR = 54
 const STEP = 32
