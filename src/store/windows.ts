@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type WindowKind = 'terminal' | 'folder' | 'markdown' | 'text' | 'image' | 'video' | 'pdf' | 'app' | 'cv' | 'guestbook'
+export type WindowKind = 'terminal' | 'folder' | 'markdown' | 'text' | 'image' | 'video' | 'pdf' | 'app' | 'cv' | 'guestbook' | 'updates'
 
 export interface Win {
   id: string
@@ -34,6 +34,8 @@ interface WindowState {
   toggleMaximize: (id: string) => void
   setBounds: (id: string, b: Partial<Pick<Win, 'x' | 'y' | 'w' | 'h'>>) => void
   update: (id: string, patch: Partial<Win>) => void
+  /** Put every window back at its default size, cascaded from the centre, in its current stacking order. */
+  resetLayout: () => void
   /** Keep every window reachable after the viewport changes size. */
   fitAll: () => void
 }
@@ -49,9 +51,13 @@ const DEFAULT_SIZE: Record<WindowKind, [number, number]> = {
   app: [1024, 680],
   cv: [780, 680],
   guestbook: [600, 640],
+  updates: [560, 600],
 }
 
 let counter = 0
+
+/** Kinds that only ever have one window. */
+const SINGLETONS = new Set<WindowKind>(['terminal', 'guestbook', 'updates'])
 
 const TASKBAR = 54
 const STEP = 32
@@ -94,7 +100,7 @@ export const useWindows = create<WindowState>()(
         const { windows, topZ } = get()
         // One window per thing: reopening focuses the existing window.
         const existing = windows.find(
-          (w) => w.kind === spec.kind && (spec.kind === 'terminal' || spec.kind === 'guestbook' || (w.path ?? w.url) === (spec.path ?? spec.url)),
+          (w) => w.kind === spec.kind && (SINGLETONS.has(spec.kind) || (w.path ?? w.url) === (spec.path ?? spec.url)),
         )
         if (existing) {
           set({
@@ -136,6 +142,18 @@ export const useWindows = create<WindowState>()(
       setBounds: (id, b) => set({ windows: get().windows.map((w) => (w.id === id ? { ...w, ...b } : w)) }),
 
       update: (id, patch) => set({ windows: get().windows.map((w) => (w.id === id ? { ...w, ...patch } : w)) }),
+
+      resetLayout: () => {
+        const placed: Win[] = []
+        for (const w of [...get().windows].sort((a, b) => a.z - b.z)) {
+          const [dw, dh] = DEFAULT_SIZE[w.kind]
+          // Games keep the size they were built for.
+          const size = w.kind === 'app' && w.title.endsWith('(play)') ? [w.w, w.h] : [dw, dh]
+          placed.push({ ...w, minimized: false, maximized: false, ...place(size[0], size[1], placed[placed.length - 1]) })
+        }
+        const order = new Map(placed.map((w) => [w.id, w]))
+        set({ windows: get().windows.map((w) => order.get(w.id) ?? w) })
+      },
 
       fitAll: () => {
         const windows = get().windows
