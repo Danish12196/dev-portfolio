@@ -4,9 +4,11 @@ import type { DirNode, FsNode } from '../fs/types'
 import { specFor, WindowContent } from '../apps/registry'
 import Icon from '../apps/Icon'
 import { formatUpdated, NOW_PATH, readNow } from '../apps/now'
-import { hasWallpaperPicker, openGuestbook, openNode, openStats, openTerminal, openUpdates, openWallpaperPicker, registerOpener, viewSource } from '../shell/opener'
+import { hasWallpaperPicker, openGuestbook, openNode, openStats, openTerminal, openUpdates, openWallpaperPicker, registerOpener, registerWallpaperPicker, viewSource, WALLPAPER_SPEC } from '../shell/opener'
 import { useTheme } from '../shell/theme'
 import { topWindowId, useWindows, type Win } from '../store/windows'
+import Boot from './Boot'
+import Screensaver from './Screensaver'
 import Wallpaper from './Wallpaper'
 import Window from './Window'
 
@@ -102,6 +104,9 @@ function StartMenu({ onClose }: { onClose: () => void }) {
         )}
         <button type="button" className="pill" onClick={() => (openTerminal(), onClose())}>
           Terminal
+        </button>
+        <button type="button" className="pill" onClick={() => (openWallpaperPicker(), onClose())}>
+          Wallpaper
         </button>
         <button type="button" className="pill" onClick={() => (openStats(), onClose())}>
           Stats
@@ -380,6 +385,8 @@ export default function Desktop() {
       () => void open({ kind: 'terminal', title: 'Terminal' }),
       (spec) => void open(spec),
     )
+    registerWallpaperPicker(() => void open(WALLPAPER_SPEC))
+    return () => registerWallpaperPicker(undefined)
   }, [open])
 
   const top = topWindowId(windows)
@@ -458,6 +465,8 @@ export default function Desktop() {
         />
       )}
       <Taskbar windows={windows} />
+      <Screensaver />
+      <Boot />
     </div>
   )
 }
