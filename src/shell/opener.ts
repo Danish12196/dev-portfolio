@@ -31,9 +31,33 @@ export function openTerminal() {
   terminalOpener()
 }
 
+export const STATS: OpenSpec = { kind: 'stats', title: 'Stats' }
+
+/** Windows that aren't a file, like Stats. */
+export function openStats() {
+  specOpener(STATS)
+}
+
+export const GUESTBOOK: OpenSpec = { kind: 'guestbook', title: 'Guestbook' }
+
+export function openGuestbook() {
+  specOpener(GUESTBOOK)
+}
+
 /** The wallpaper settings window. */
 export const WALLPAPER_SPEC: OpenSpec = { kind: 'wallpaper', title: 'Wallpaper' }
 
+/** Whoever shows the wallpaper picker (desktop or phone) registers it; menus check before offering it. */
+let wallpaperPicker: (() => void) | undefined
+
+export function registerWallpaperPicker(fn: (() => void) | undefined) {
+  wallpaperPicker = fn
+}
+
+export function hasWallpaperPicker() {
+  return Boolean(wallpaperPicker)
+}
+
 export function openWallpaperPicker() {
-  specOpener(WALLPAPER_SPEC)
+  wallpaperPicker?.()
 }

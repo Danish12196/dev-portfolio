@@ -1,9 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { getNode, projects } from '../fs'
+import { useEffect, useRef, useState } from 'react'
+import { getNode, projects, TRASH_DIR } from '../fs'
 import type { DirNode, FsNode } from '../fs/types'
 import { specFor, WindowContent } from '../apps/registry'
 import Icon from '../apps/Icon'
-import { openNode, openTerminal, openWallpaperPicker, registerOpener } from '../shell/opener'
+import { formatUpdated, NOW_PATH, readNow } from '../apps/now'
+import { openGuestbook, openNode, openStats, openTerminal, openWallpaperPicker, registerOpener, registerWallpaperPicker, WALLPAPER_SPEC } from '../shell/opener'
 import { useTheme } from '../shell/theme'
 import { topWindowId, useWindows, type Win } from '../store/windows'
 import Boot from './Boot'
@@ -30,6 +31,7 @@ function Clock() {
 function StartMenu({ onClose }: { onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null)
   const about = getNode('/about.md')
+  const cv = getNode('/cv.md')
   // Move focus into the menu, and give it back to the start button when it closes.
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null
@@ -95,11 +97,22 @@ function StartMenu({ onClose }: { onClose: () => void }) {
             About me
           </button>
         )}
+        {cv && (
+          <button type="button" className="pill" onClick={() => go(cv)}>
+            CV & contact
+          </button>
+        )}
         <button type="button" className="pill" onClick={() => (openTerminal(), onClose())}>
           Terminal
         </button>
         <button type="button" className="pill" onClick={() => (openWallpaperPicker(), onClose())}>
           Wallpaper
+        </button>
+        <button type="button" className="pill" onClick={() => (openStats(), onClose())}>
+          Stats
+        </button>
+        <button type="button" className="pill" onClick={() => (openGuestbook(), onClose())}>
+          Guestbook
         </button>
         <a className="pill" href={GITHUB} target="_blank" rel="noreferrer">
           GitHub
@@ -233,7 +246,31 @@ function Taskbar({ windows }: { windows: Win[] }) {
   )
 }
 
-function DeskIcon({ node, label, onOpen, color }: { node: FsNode | 'terminal'; label: string; onOpen: () => void; color?: string }) {
+/** A sticky note on the desktop listing what I'm working on (content/now.md). */
+function NowNote() {
+  const now = readNow()
+  const node = getNode(NOW_PATH)
+  if (!now || !node) return null
+  const when = formatUpdated(now.updated)
+  return (
+    <aside className="now-note" aria-labelledby="now-note-title">
+      <h2 id="now-note-title">
+        <span className="now-dot" aria-hidden="true" />
+        Working on
+      </h2>
+      <ul>
+        {now.items.slice(0, 4).map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+      <button type="button" className="now-more" onClick={() => openNode(node)}>
+        {when ? `Updated ${when}` : 'Open note'} · now.md
+      </button>
+    </aside>
+  )
+}
+
+function DeskIcon({ node, label, onOpen, color }: { node: FsNode | 'terminal' | 'guestbook' | 'stats'; label: string; onOpen: () => void; color?: string }) {
   return (
     <li>
       <button
@@ -255,52 +292,6 @@ function DeskIcon({ node, label, onOpen, color }: { node: FsNode | 'terminal'; l
   )
 }
 
-/** Right-click on the desktop itself: the usual handful of desktop actions. */
-function DesktopMenu({ at, onClose }: { at: { x: number; y: number }; onClose: () => void }) {
-  const ref = useRef<HTMLDivElement>(null)
-  const [theme, setTheme] = useTheme()
-  useEffect(() => {
-    ref.current?.querySelector<HTMLElement>('button')?.focus()
-    const onDown = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && onClose()
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') return onClose()
-      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
-      e.preventDefault()
-      const items = [...(ref.current?.querySelectorAll<HTMLElement>('button') ?? [])]
-      const at = items.indexOf(document.activeElement as HTMLElement)
-      items[(at + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length]?.focus()
-    }
-    window.addEventListener('pointerdown', onDown, true)
-    window.addEventListener('keydown', onKey)
-    window.addEventListener('blur', onClose)
-    return () => {
-      window.removeEventListener('pointerdown', onDown, true)
-      window.removeEventListener('keydown', onKey)
-      window.removeEventListener('blur', onClose)
-    }
-  }, [onClose])
-  const run = (fn: () => void) => () => {
-    fn()
-    onClose()
-  }
-  // Keep the menu on screen near the right and bottom edges.
-  const x = Math.min(at.x, window.innerWidth - 220)
-  const y = Math.min(at.y, window.innerHeight - 200)
-  return (
-    <div className="ctx-menu" ref={ref} role="menu" aria-label="Desktop" style={{ left: x, top: y }}>
-      <button type="button" role="menuitem" onClick={run(openWallpaperPicker)}>
-        Change wallpaper…
-      </button>
-      <button type="button" role="menuitem" onClick={run(() => setTheme(theme === 'dark' ? 'light' : 'dark'))}>
-        {theme === 'dark' ? 'Switch to day' : 'Switch to night'}
-      </button>
-      <button type="button" role="menuitem" onClick={run(openTerminal)}>
-        Open terminal
-      </button>
-    </div>
-  )
-}
-
 export default function Desktop() {
   const { windows, open, close, update, fitAll } = useWindows()
 
@@ -316,34 +307,32 @@ export default function Desktop() {
       () => void open({ kind: 'terminal', title: 'Terminal' }),
       (spec) => void open(spec),
     )
+    registerWallpaperPicker(() => void open(WALLPAPER_SPEC))
+    return () => registerWallpaperPicker(undefined)
   }, [open])
 
   const top = topWindowId(windows)
   const about = getNode('/about.md')
-  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null)
-  const closeMenu = useCallback(() => setMenu(null), [])
+  const cv = getNode('/cv.md')
+  const trash = getNode(TRASH_DIR)
 
   return (
     <div className="desktop">
       <Wallpaper />
-      <main
-        className="workspace"
-        onContextMenu={(e) => {
-          // Only the empty desktop: windows and icons keep the browser's own menu.
-          const t = e.target as HTMLElement
-          if (t !== e.currentTarget && !t.classList.contains('desk-icons')) return
-          e.preventDefault()
-          setMenu({ x: e.clientX, y: e.clientY })
-        }}
-      >
+      <main className="workspace">
         <h1 className="sr-only">Danish Ali, dev portfolio</h1>
         <ul className="desk-icons" aria-label="Desktop">
           {projects().map((p) => (
             <DeskIcon key={p.path} node={p} label={p.name} onOpen={() => openNode(p)} />
           ))}
           <DeskIcon node="terminal" label="terminal" onOpen={openTerminal} />
+          <DeskIcon node="stats" label="stats" onOpen={openStats} />
           {about && <DeskIcon node={about} label="about me" onOpen={() => openNode(about)} />}
+          {cv && <DeskIcon node={cv} label="cv & contact" onOpen={() => openNode(cv)} />}
+          <DeskIcon node="guestbook" label="guestbook" onOpen={openGuestbook} />
+          {trash && <DeskIcon node={trash} label="trash" onOpen={() => openNode(trash)} />}
         </ul>
+        <NowNote />
         {windows.length === 0 && <p className="desk-hint">Double-click a folder (or select it and press Enter) to open it. The dev/portfolio button opens the start menu.</p>}
         {windows.map((w) => (
           <Window key={w.id} win={w} active={w.id === top}>
@@ -361,7 +350,6 @@ export default function Desktop() {
         ))}
       </main>
       <Taskbar windows={windows} />
-      {menu && <DesktopMenu at={menu} onClose={closeMenu} />}
       <Screensaver />
       <Boot />
     </div>

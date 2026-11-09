@@ -1,8 +1,11 @@
 import { displayPath, findApp, findProject, getNode, projects, resolvePath, root } from '../fs'
 import type { DirNode, FsNode } from '../fs/types'
-import { openNode, openWallpaperPicker } from '../shell/opener'
-import { startScreensaver } from '../shell/screensaver'
+import { ago, duration, level, loadStats, loadVisits, weeks } from '../apps/stats'
+import { formatUpdated, NOW_PATH, readNow } from '../apps/now'
+import { openGuestbook, openNode, openStats, openWallpaperPicker } from '../shell/opener'
 import { setTheme } from '../shell/theme'
+import { contact, CV_PATH, localTime } from '../shell/contact'
+import { startScreensaver } from '../shell/screensaver'
 import { findWallpaper, getWallpaper, setWallpaper, WALLPAPERS } from '../shell/wallpaper'
 import { EGG_COMMANDS, HIDDEN_FILES } from './eggs'
 import { findEgg } from './found'
@@ -30,6 +33,46 @@ export interface Command {
 function nodeSeg(node: FsNode): Seg {
   if (node.type === 'dir') return { t: node.name + '/', cls: 'dir', open: node.path }
   return { t: node.name, open: node.path }
+}
+
+const SHADES = ['·', '░', '▒', '▓', '█']
+
+/** GitHub and site numbers, drawn in text. The same data as the Stats window. */
+async function printStats(print: Ctx['print']) {
+  const [stats, visits] = await Promise.all([loadStats(), loadVisits()])
+  const gh = stats?.github
+  const c = gh?.contributions
+  if (c) {
+    print([txt('contributions', 'bold'), txt(c.exact ? `  ${c.total.toLocaleString()} in the last year` : '  the last year', 'dim')])
+    const cols = weeks(c.days, 26)
+    const max = Math.max(...c.days.map((d) => d.count))
+    for (let row = 0; row < 7; row++) {
+      print([txt('  ' + cols.map((w) => (w[row] ? SHADES[c.exact ? level(w[row]!.count, max) : Math.min(4, w[row]!.count)] : ' ')).join(''))])
+    }
+    print([txt(`  streak ${c.currentStreak}d · longest ${c.longestStreak}d · ${c.activeDays} active days`, 'dim')])
+  }
+  if (gh?.languages?.length) {
+    print([], [txt('languages', 'bold')])
+    for (const l of gh.languages) {
+      const n = Math.round(l.share * 24)
+      print([txt('  ' + l.name.padEnd(12)), txt('█'.repeat(n), 'accent'), txt('░'.repeat(24 - n), 'dim'), txt(` ${Math.max(1, Math.round(l.share * 100))}%`)])
+    }
+  }
+  if (gh?.commits?.length) {
+    print([], [txt('recent commits', 'bold')])
+    for (const cm of gh.commits.slice(0, 5)) {
+      print([txt('  '), { t: cm.sha, cls: 'accent', href: cm.url }, txt(` ${cm.repo.padEnd(14)} `, 'dim'), txt(cm.message.slice(0, 48)), txt(`  ${ago(cm.date)}`, 'dim')])
+    }
+  }
+  if (stats?.itch?.length) {
+    print([], [txt('itch.io', 'bold')])
+    for (const g of stats.itch) print([txt('  ' + g.title.padEnd(20)), txt(`${g.views.toLocaleString()} views`, 'dim')])
+  }
+  print([], [txt('this site', 'bold')])
+  if (visits && visits.visits > 0) print([txt(`  ${visits.visits.toLocaleString()} visits, ${duration(visits.avgSeconds)} on average`)])
+  print([txt(`  ${projects().length} projects${stats?.site.commits ? `, ${stats.site.commits} commits to build it` : ''}`)])
+  if (!stats) print([txt('  (the GitHub numbers are missing from this build)', 'dim')])
+  print([], [txt('Prettier as a window: ', 'dim'), cmd('stats -w')])
 }
 
 function textLines(text: string): Line[] {
@@ -124,12 +167,18 @@ export const COMMANDS: Record<string, Command> = {
     },
   },
   run: {
-    desc: "launch a project's live app",
+    desc: "launch a project's live app (games open on itch.io)",
     usage: 'run <project>',
     run: (args, { print }) => {
       const dir = args[0] ? findProject(args[0]) : undefined
       const app = dir && findApp(dir)
       if (!dir) return print(err(`run: ${args[0] ?? '?'}: no such project. Try \`projects\`.`))
+      // Games live on itch.io, which can't be embedded, so `run` opens their page there instead.
+      const itch = !app ? dir.children.find((c) => c.type === 'file' && c.kind === 'link' && /^itch\.link$/i.test(c.name)) : undefined
+      if (itch) {
+        openNode(itch)
+        return print([txt('opening ', 'dim'), txt(dir.meta?.name ?? dir.name, 'accent'), txt(' on itch.io ↗', 'dim')])
+      }
       if (!app) return print(err(`run: ${dir.meta?.name ?? dir.name} has no live app yet.`))
       openNode(app)
       print([txt('launching ', 'dim'), txt(app.name, 'accent')])
@@ -156,11 +205,64 @@ export const COMMANDS: Record<string, Command> = {
       }
     },
   },
+  stats: {
+    desc: 'GitHub streaks, languages and site visits',
+    usage: 'stats [-w]',
+    run: (args, { print }) => {
+      if (args.some((a) => /^(-w|--window|window)$/.test(a))) {
+        openStats()
+        return print([txt('opening Stats', 'dim')])
+      }
+      print([txt('reading counters…', 'dim')])
+      void printStats(print)
+    },
+  },
+  now: {
+    desc: "what I'm working on right now",
+    run: (_a, { print }) => {
+      const now = readNow()
+      if (!now) return print(err('now: nothing on the go. Suspicious.'))
+      const when = formatUpdated(now.updated)
+      print([txt('Now', 'bold'), txt(when ? ` · updated ${when}` : '', 'dim')])
+      for (const item of now.items) print([txt('  • ', 'accent'), txt(item)])
+      print([txt('Full note: ', 'dim'), { t: 'now.md', open: NOW_PATH }])
+    },
+  },
   whoami: {
     desc: 'who made this',
     run: (_a, { print }) => {
       const about = getNode('/about.md')
       if (about?.type === 'file' && about.text) print(...textLines(about.text))
+    },
+  },
+  cv: {
+    desc: 'open my CV',
+    run: (_a, { print }) => {
+      const cv = getNode(CV_PATH)
+      if (!cv) return print(err('cv: no CV here yet'))
+      openNode(cv)
+      print([txt('opening ', 'dim'), { t: 'cv.md', open: CV_PATH }, txt(' · ', 'dim'), cmd('cat cv.md'), txt(' prints it here instead', 'dim')])
+    },
+  },
+  contact: {
+    desc: 'how to reach me',
+    run: (_a, { print }) => {
+      const c = contact()
+      const row = (label: string, seg: Seg) => print([txt(label.padEnd(10), 'dim'), seg])
+      if (c.email) row('email', { t: c.email, href: `mailto:${c.email}` })
+      for (const l of c.links) row(l.label.toLowerCase(), { t: l.url.replace(/^https?:\/\/(www\.)?/, ''), href: l.url })
+      if (c.timezone && c.location) {
+        const { time, gap } = localTime(c.timezone)
+        row('local', txt(`${time} in ${c.location.split(',')[0]} (${gap})`))
+      }
+      print([txt('Or ', 'dim'), { t: 'open the contact card', cls: 'accent', open: CV_PATH }, txt(', which has the CV too.', 'dim')])
+    },
+  },
+  guestbook: {
+    desc: 'leave me a note',
+    run: (_a, { print }) => {
+      openGuestbook()
+      print([txt('opening the guestbook. notes reach me first; nice ones get pinned.', 'dim')])
     },
   },
   theme: {

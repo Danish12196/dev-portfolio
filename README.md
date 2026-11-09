@@ -80,10 +80,26 @@ from the iframe on the itch.io page). `project.json` can also have
 `"cover": "media/01-cover.jpg"` to put the cover art on top of the README, and
 `"jam"` for the game jam it was made for. `itch.link` becomes an itch.io button.
 
+### Trash
+
+`content/trash/` holds abandoned projects, one folder each with a `project.json`
+and a `README.md`, in the same format as above. They open from the trash can on
+the desktop (and on the phone home screen), and stay out of the start menu,
+search and `projects`.
+
 Anything else in the folder shows up too: `.md` files render as documents,
 images and video get viewers, PDFs open in a PDF window, and any other file
 opens as plain text. `content/about.md` is the About page and the output of
 `whoami`.
+
+## CV and contact
+
+`content/cv.md` is the CV, shown in the "CV & contact" window (desktop icon,
+start menu, phone home screen, `cv`, or danishali.dev/cv). `content/contact.json`
+holds the name, location, time zone, email and links on the card above it; leave
+a field empty and it's hidden. The window's "Print or save as PDF" button prints
+just the CV on a clean white page. Put a `cv.pdf` in `content/` and the button
+becomes a download of that file instead.
 
 ## Terminal commands
 
@@ -97,7 +113,13 @@ opens as plain text. `content/about.md` is the About page and the output of
 | `play jeopardy` | launch Jeopardy |
 | `projects` | table of every project |
 | `whoami` | about me |
+| `stats` | GitHub streaks, languages, recent commits and site visits (`stats -w` opens the window) |
+| `cv` | open the CV & contact window |
+| `contact` | email, links and my local time |
 | `theme light` / `theme dark` | switch theme |
+| `wallpaper [name]` | open the wallpaper picker, or switch straight to one |
+| `screensaver` | start the screensaver now |
+| `guestbook` | open the guestbook |
 | `clear`, `exit` | clear the screen, close the terminal |
 
 Tab completes commands and paths; the up and down arrows recall history.
@@ -117,6 +139,38 @@ Tab completes commands and paths; the up and down arrows recall history.
 There are also ten hidden secrets that don't show in `help` or tab completion.
 They live in `src/terminal/eggs.ts` and `src/terminal/found.ts`; no spoilers here.
 
+## Stats
+
+The Stats window (desktop icon, start menu, phone home screen or `stats -w`)
+shows a contribution heatmap and streaks, languages, recent commits, itch.io
+views and visits to this site.
+
+- **GitHub and itch.io numbers** are fetched once per deploy by
+  `scripts/build-stats.mjs` into `public/stats.json`, so visitors never call
+  GitHub and no rate limit is reached from the browser. If a source fails during
+  a build, the numbers from the live site's `stats.json` are kept. Optional
+  Vercel environment variables: `GITHUB_TOKEN` (a token with no scopes; exact
+  counts and a higher rate limit) and `ITCH_API_KEY` (itch.io > Settings > API
+  keys; without it the itch.io section is hidden).
+- **Visits and average time on the site** come from `api/visit.ts`, which
+  stores them on PocketBase. Each page load is one row holding only the seconds
+  the tab was visible (capped at 30 minutes). No cookies and nothing in the
+  browser's storage: the page keeps a random id in memory so later reports add
+  to the same row, and forgets it on reload. Rate limiting uses the IP hashed
+  with a salt that changes every day. Browsers with Do Not Track or Global
+  Privacy Control are not counted. Until it's set up, the visits rows are hidden.
+
+  Setting it up once:
+
+  ```sh
+  # Windows cmd
+  set "PB_EMAIL=you@example.com" && set "PB_PASSWORD=..." && node scripts/setup-visits.mjs
+  ```
+
+  It only adds the `site_visits` and `site_visit_totals` collections. Add the
+  `VISITS_KEY` it prints to the Vercel project's environment variables and
+  redeploy.
+
 ## How it's built
 
 React, TypeScript and Vite, with Zustand for window state. The desktop and the
@@ -125,6 +179,8 @@ phone UI share the same file tree and the same viewers.
 ```
 content/              projects and about page (edit these)
 scripts/              build-content.mjs: content/ -> src/generated/fs.json
+                      build-stats.mjs: GitHub and itch.io numbers -> public/stats.json
+api/visit.ts          anonymous visit and time-on-site counter (Vercel function)
 src/fs/               file tree helpers (paths, lookups)
 src/store/windows.ts  window manager state, saved to localStorage
 src/terminal/         terminal commands and tab completion
@@ -137,6 +193,53 @@ src/styles/tokens.css every colour, font, radius and shadow
 The look is "Soft Paper": rounded pastel windows and folders, the Nunito font,
 an illustrated hills-and-sun wallpaper, and a terminal that is always green on
 black. Every colour, font and shadow comes from `src/styles/tokens.css`.
+
+## Guestbook
+
+Visitors can leave a note in the guestbook window (desktop icon, start menu,
+phone home screen, or `guestbook` in the terminal). Notes go to PocketBase and
+stay private until I approve them; only approved notes are shown on the site.
+
+`api/guestbook.ts` is a Vercel function that sits in front of PocketBase. It
+drops bots (a hidden honeypot field and a minimum time on the form), limits each
+visitor to 2 notes per 10 minutes and the whole site to 30 pending notes an
+hour, caps names at 40 characters and notes at 500, and allows one link per note.
+
+Setting it up once:
+
+1. Create the collection (it touches nothing else on the server):
+
+   ```sh
+   # Windows cmd
+   set "PB_EMAIL=you@example.com" && set "PB_PASSWORD=..." && node scripts/setup-guestbook.mjs
+   ```
+
+2. Add the `GUESTBOOK_KEY` it prints to the Vercel project's environment
+   variables and redeploy.
+3. Optional: set `GUESTBOOK_NOTIFY_URL` to a Discord webhook or an ntfy topic
+   URL (for example `https://ntfy.sh/some-long-secret-topic`) to get a ping for
+   every new note.
+
+To publish a note, open `pb.danishali.dev/_/`, go to the `guestbook`
+collection and tick `approved`. Delete anything you don't want. The site
+caches the list for a minute. If the key ever leaks, run the script again with
+`--new-key` and update the variable in Vercel.
+
+## Boot, screensaver and wallpapers
+
+- Every page load plays a short boot: green firmware text, then the Soft Paper
+  splash. Reloads in the same tab, and reduced motion, get only the splash. Any
+  key or click skips it. `restart()` in `src/shell/power.ts` closes every window,
+  resets the terminal and plays the full boot again (for a restart command).
+- After 30 seconds without input the screensaver starts (`src/desktop/Screensaver.tsx`).
+  It holds off while a video plays or a live demo has focus.
+- The wallpaper picker (start menu, `wallpaper`, or the phone's Wallpaper icon)
+  offers seven backgrounds, each with a day and a night version that follow the
+  theme. Images are in `public/wallpapers/`; credits and licences are in
+  `src/shell/wallpaper.ts` and shown in the picker. Photos come from the
+  elementary OS wallpaper set (Unsplash, Pexels, and Brendon Porter / Ryan Gorley
+  under CC BY-SA 4.0); the art comes from GNOME backgrounds (Jakub Steiner and
+  Dominik Baran, CC BY-SA 3.0).
 
 ## Deploying
 

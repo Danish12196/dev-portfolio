@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
-import { findProject, findReadme, getNode, projects } from '../fs'
+import { findProject, findReadme, getNode, projects, TRASH_DIR } from '../fs'
 import type { FsNode } from '../fs/types'
 import Icon from '../apps/Icon'
 import { specFor, WindowContent } from '../apps/registry'
-import { registerOpener, WALLPAPER_SPEC } from '../shell/opener'
+import { GUESTBOOK, registerOpener, registerWallpaperPicker, STATS, WALLPAPER_SPEC } from '../shell/opener'
 import Boot from '../desktop/Boot'
 import Wallpaper from '../desktop/Wallpaper'
 import type { OpenSpec } from '../store/windows'
@@ -26,6 +26,8 @@ function StatusBar() {
 export default function Phone() {
   // /projects/<name> opens that project's folder (and its README on top).
   const [stack, setStack] = useState<OpenSpec[]>(() => {
+    const cv = getNode('/cv.md')
+    if (cv && /^\/(cv|contact)\/?$/i.test(location.pathname)) return [specFor(cv)]
     const match = location.pathname.match(/^\/projects\/([^/]+)/)
     const project = match && findProject(decodeURIComponent(match[1]))
     if (!project) return []
@@ -39,6 +41,8 @@ export default function Phone() {
       () => setStack((s) => [...s, { kind: 'terminal', title: 'Terminal' }]),
       (spec) => setStack((s) => [...s, spec]),
     )
+    registerWallpaperPicker(() => setStack((s) => [...s, WALLPAPER_SPEC]))
+    return () => registerWallpaperPicker(undefined)
   }, [])
 
   // Screen readers and keyboards land on the new screen's title, like a page change.
@@ -56,7 +60,10 @@ export default function Phone() {
   const back = () => setStack((s) => s.slice(0, -1))
   const current = stack[stack.length - 1]
   const about = getNode('/about.md')
+  const now = getNode('/now.md')
+  const cv = getNode('/cv.md')
   const files = getNode('/projects')
+  const trash = getNode(TRASH_DIR)
   const open = (spec: OpenSpec) => setStack((s) => [...s, spec])
 
   return (
@@ -129,6 +136,46 @@ export default function Phone() {
                 <span>Wallpaper</span>
               </button>
             </li>
+            <li>
+              <button type="button" onClick={() => open(STATS)}>
+                <Icon node="stats" size="xl" />
+                <span>Stats</span>
+              </button>
+            </li>
+            {now && (
+              <li>
+                <button type="button" onClick={() => open(specFor(now))}>
+                  <span className="ic ic-xl ic-tile ic-now" aria-hidden="true">
+                    now
+                  </span>
+                  <span>Now</span>
+                </button>
+              </li>
+            )}
+            {cv && (
+              <li>
+                <button type="button" onClick={() => open(specFor(cv))}>
+                  <Icon node={cv} size="xl" />
+                  <span>CV</span>
+                </button>
+              </li>
+            )}
+            <li>
+              <button type="button" onClick={() => open(GUESTBOOK)}>
+                <span className="ic ic-xl ic-tile ic-guestbook" aria-hidden="true">
+                  ✎
+                </span>
+                <span>Guestbook</span>
+              </button>
+            </li>
+            {trash && (
+              <li>
+                <button type="button" onClick={() => open(specFor(trash))}>
+                  <Icon node={trash} size="xl" />
+                  <span>Trash</span>
+                </button>
+              </li>
+            )}
           </ul>
           <nav className="ph-dock" aria-label="Dock">
             <button type="button" onClick={() => open({ kind: 'terminal', title: 'Terminal' })}>
