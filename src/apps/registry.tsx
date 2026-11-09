@@ -4,6 +4,7 @@ import type { OpenSpec, Win } from '../store/windows'
 import { CV_PATH } from '../shell/contact'
 import CvView from './CvView'
 import FolderView from './FolderView'
+import Guestbook from './Guestbook'
 import Terminal from './Terminal'
 import { AppFrame, ImageView, MarkdownView, PdfView, TextView, VideoView } from './Viewers'
 
@@ -56,6 +57,8 @@ export function WindowContent({ win, opts }: { win: Pick<Win, 'kind' | 'path' | 
       return <PdfView path={win.path} />
     case 'cv':
       return <CvView />
+    case 'guestbook':
+      return <Guestbook />
     case 'app':
       return <AppFrame url={win.url} title={win.title} />
     default:
