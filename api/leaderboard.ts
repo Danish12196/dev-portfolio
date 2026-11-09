@@ -12,13 +12,12 @@
 // replayed move by move on the server, and achievement times can't beat the
 // clock the server started when the run began.
 
-import { redis, storeMissing } from './_lib/store.js'
+import { store, storeMissing, type Entry } from './_lib/store.js'
 import { ipKey, nonce, secretMissing, sign, verify } from './_lib/token.js'
 import { nameProblem, tidyName } from '../src/leaderboard/names.js'
 import { MAX_COLS, MAX_ROWS, MIN_COLS, MIN_ROWS, replay, type Move } from '../src/leaderboard/snakeEngine.js'
 
 const TOP = 10
-const KEEP = 100
 const DAY = 86400
 
 const json = (body: unknown, status = 200, headers: Record<string, string> = {}) =>
@@ -26,64 +25,23 @@ const json = (body: unknown, status = 200, headers: Record<string, string> = {})
 const fail = (error: string, status = 400) => json({ error }, status)
 
 /** Counts hits for `bucket` from this visitor and says whether they're over `limit` per `windowS` seconds. */
-async function limited(req: Request, bucket: string, limit: number, windowS: number) {
-  const key = `lb:rl:${bucket}:${ipKey(req)}`
-  const [n] = await redis(['INCR', key], ['EXPIRE', key, windowS, 'NX'])
-  return Number(n) > limit
-}
+const limited = (req: Request, bucket: string, limit: number, windowS: number) => store.limited(bucket, ipKey(req), limit, windowS)
 
 /** Marks a token id as spent. False if it was already used. */
-async function spend(id: string, ttlS: number) {
-  const [ok] = await redis(['SET', `lb:used:${id}`, '1', 'NX', 'EX', ttlS])
-  return ok === 'OK'
-}
+const spend = (id: string) => store.spend(id)
 
 /* ------------------------------ boards ------------------------------ */
 
-interface Entry {
-  name: string
-  value: number
-  at: number
-}
-
 const BOARDS = {
   // Higher score wins; on a tie the earlier score stays ahead.
-  snake: { key: 'lb:snake', highWins: true, sortKey: (e: Entry) => e.value - e.at / 1e14 },
+  snake: { highWins: true },
   // Lower time wins; on a tie the earlier run stays ahead.
-  achievements: { key: 'lb:ach', highWins: false, sortKey: (e: Entry) => e.value + e.at / 1e14 },
+  achievements: { highWins: false },
 } as const
 type Board = keyof typeof BOARDS
 
-async function top(board: Board) {
-  const b = BOARDS[board]
-  const [flat] = (await redis(['ZRANGE', b.key, 0, TOP - 1, ...(b.highWins ? ['REV'] : []), 'WITHSCORES'])) as [(string | number)[]]
-  if (!flat.length) return []
-  const ids = flat.filter((_, i) => i % 2 === 0).map(String)
-  const [rows] = (await redis(['HMGET', `${b.key}:meta`, ...ids])) as [(string | null)[]]
-  // The score comes from the sorted set itself, which Redis updates atomically. The
-  // metadata only adds the name's spelling, so two overlapping saves can't show a stale score.
-  return rows.flatMap((r, i) => {
-    if (!r) return []
-    const e = JSON.parse(r) as Entry
-    const sort = Number(flat[i * 2 + 1])
-    return [{ ...e, value: b.highWins ? Math.ceil(sort) : Math.floor(sort) }]
-  })
-}
-
-/** Saves an entry, keeping each name's best only. Returns the 1-based rank of that name. */
-async function save(board: Board, e: Entry) {
-  const b = BOARDS[board]
-  const id = e.name.toLowerCase()
-  const [changed] = await redis(['ZADD', b.key, b.highWins ? 'GT' : 'LT', 'CH', b.sortKey(e), id])
-  const replies = await redis(
-    ...(Number(changed) ? [['HSET', `${b.key}:meta`, id, JSON.stringify(e)]] : []),
-    // Only the best KEEP stay on the board.
-    ['ZREMRANGEBYRANK', b.key, ...(b.highWins ? [0, -KEEP - 1] : [KEEP, -1])],
-    [b.highWins ? 'ZREVRANK' : 'ZRANK', b.key, id],
-  )
-  const rank = replies[replies.length - 1]
-  return { rank: rank === null ? null : Number(rank) + 1, improved: !!Number(changed) }
-}
+const top = (board: Board) => store.top(board, BOARDS[board].highWins, TOP)
+const save = (board: Board, e: Entry) => store.save(board, BOARDS[board].highWins, e)
 
 function checkName(raw: unknown) {
   const name = tidyName(String(raw ?? ''))
@@ -138,7 +96,7 @@ async function snakeSubmit(req: Request, body: Record<string, unknown>) {
   // The game speeds up but never past one tick per 55ms, so a real game can't finish faster than this.
   if (elapsed < r.minMs * 0.8) return fail('that was faster than the snake can move')
 
-  if (!(await spend(t.n, SNAKE_TTL))) return fail('that game was already submitted')
+  if (!(await spend(t.n))) return fail('that game was already submitted')
 
   const { rank, improved } = await save('snake', { name, value: r.score, at: Date.now() })
   return json({ rank, score: r.score, improved })
@@ -194,7 +152,7 @@ async function achFinish(req: Request, body: Record<string, unknown>) {
   if (wall < MIN_RUN_MS) return fail('that was too fast to be real')
 
   if (await limited(req, 'ach-finish', 10, 3600)) return fail('slow down', 429)
-  if (!(await spend(t.n, RUN_TTL))) return fail('that run was already finished')
+  if (!(await spend(t.n))) return fail('that run was already finished')
   const f: AchFinish = { k: 'achf', n: nonce(), ms, iat: Date.now() }
   return json({ finish: sign(f), ms })
 }
@@ -206,7 +164,7 @@ async function achSubmit(req: Request, body: Record<string, unknown>) {
   const { name, problem } = checkName(body.name)
   if (problem) return fail(problem)
   if (await limited(req, 'ach', 10, 600)) return fail('too many submissions, try again in a few minutes', 429)
-  if (!(await spend(f.n, RUN_TTL))) return fail('that run is already on the board')
+  if (!(await spend(f.n))) return fail('that run is already on the board')
   const { rank, improved } = await save('achievements', { name, value: f.ms, at: Date.now() })
   return json({ rank, ms: f.ms, improved })
 }

@@ -4,7 +4,8 @@
 
 import { createHmac, randomBytes, timingSafeEqual } from 'node:crypto'
 
-const SECRET = process.env.LEADERBOARD_SECRET || (process.env.VERCEL_ENV ? '' : 'local-dev-only')
+// Signed with the same LEADERBOARD_KEY that unlocks the PocketBase collections, so there's one secret to set.
+const SECRET = process.env.LEADERBOARD_KEY || (process.env.VERCEL_ENV ? '' : 'local-dev-only')
 
 export const secretMissing = !SECRET
 

@@ -1,123 +1,178 @@
-// A tiny Redis client for Upstash's REST API (what Vercel's Redis/KV
-// integration provides). Locally, with no credentials, it falls back to an
-// in-memory copy so the API can be tried without a database.
+// Leaderboard storage on PocketBase (pb.danishali.dev), in three collections
+// made by scripts/setup-leaderboards.mjs:
+//
+//   lb_scores  one row per board and name: its best score or time
+//   lb_spent   ids of tokens already used, so a game can't be submitted twice
+//   lb_hits    one row per write, for rate limiting (old rows are trimmed)
+//
+// Every collection only answers requests that carry LEADERBOARD_KEY, so
+// visitors can't write to PocketBase directly and skip the checks.
+// Locally, with no key, an in-memory stand-in is used instead.
 
-type Arg = string | number
-type Reply = unknown
+const PB = (process.env.PB_URL || 'https://pb.danishali.dev').replace(/\/+$/, '')
+export const KEY = process.env.LEADERBOARD_KEY || ''
 
-const URL_ = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL
-const TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN
+/** True on Vercel when the key isn't set yet. The API answers 503 instead of pretending. */
+export const storeMissing = !KEY && !!process.env.VERCEL_ENV
 
-/** True on Vercel when no database is linked yet. The API answers 503 instead of pretending. */
-export const storeMissing = (!URL_ || !TOKEN) && !!process.env.VERCEL_ENV
-
-/** Runs several commands in one round trip and returns each reply. */
-export async function redis(...cmds: Arg[][]): Promise<Reply[]> {
-  if (!URL_ || !TOKEN) return cmds.map((c) => memory(c))
-  const res = await fetch(`${URL_}/pipeline`, {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(cmds),
-  })
-  if (!res.ok) throw new Error(`redis ${res.status}`)
-  const out = (await res.json()) as { result?: Reply; error?: string }[]
-  return out.map((r) => {
-    if (r.error) throw new Error(r.error)
-    return r.result
-  })
+export interface Entry {
+  name: string
+  value: number
+  at: number
 }
 
-/* ---------- in-memory stand-in, only the commands this API uses ---------- */
-
-const kv = new Map<string, { v: unknown; exp: number }>()
-
-function get<T>(key: string): T | undefined {
-  const e = kv.get(key)
-  if (!e) return undefined
-  if (e.exp && e.exp < Date.now()) {
-    kv.delete(key)
-    return undefined
-  }
-  return e.v as T
+export interface Store {
+  /** Records a hit and says whether `visitor` is over `limit` in the last `windowS` seconds. */
+  limited(bucket: string, visitor: string, limit: number, windowS: number): Promise<boolean>
+  /** Marks a token id as used. False if it already was. */
+  spend(id: string): Promise<boolean>
+  top(board: string, highWins: boolean, n: number): Promise<Entry[]>
+  /** Keeps each name's best. Returns its 1-based rank and whether this beat its old entry. */
+  save(board: string, highWins: boolean, e: Entry, retry?: boolean): Promise<{ rank: number; improved: boolean }>
 }
 
-function memory(cmd: Arg[]): Reply {
-  const [op, key, ...rest] = cmd.map(String)
-  const name = op.toUpperCase()
-  switch (name) {
-    case 'INCR': {
-      const n = (Number(get(key)) || 0) + 1
-      kv.set(key, { v: n, exp: kv.get(key)?.exp ?? 0 })
-      return n
-    }
-    case 'EXPIRE': {
-      const e = kv.get(key)
-      if (!e) return 0
-      if (rest.includes('NX') && e.exp) return 0
-      e.exp = Date.now() + Number(rest[0]) * 1000
-      return 1
-    }
-    case 'SET': {
-      const nx = rest.includes('NX')
-      const ex = rest.indexOf('EX')
-      if (nx && get(key) !== undefined) return null
-      kv.set(key, { v: rest[0], exp: ex >= 0 ? Date.now() + Number(rest[ex + 1]) * 1000 : 0 })
-      return 'OK'
-    }
-    case 'ZADD': {
-      const z = get<Map<string, number>>(key) ?? new Map()
-      const gt = rest.includes('GT')
-      const lt = rest.includes('LT')
-      const args = rest.filter((a) => !['GT', 'LT', 'CH', 'NX', 'XX'].includes(a))
-      let changed = 0
-      for (let i = 0; i < args.length; i += 2) {
-        const s = Number(args[i])
-        const m = args[i + 1]
-        const old = z.get(m)
-        if (old !== undefined && ((gt && s <= old) || (lt && s >= old) || s === old)) continue
-        z.set(m, s)
-        changed++
+/* ------------------------------ PocketBase ------------------------------ */
+
+const q = (s: string) => `"${s.replace(/["\\]/g, '')}"`
+/** PocketBase wants "YYYY-MM-DD HH:MM:SS.sssZ" in filters. */
+const pbDate = (ms: number) => new Date(ms).toISOString().replace('T', ' ')
+
+async function pb<T>(collection: string, path = '', init: RequestInit = {}): Promise<{ ok: boolean; status: number; body: T }> {
+  const res = await fetch(`${PB}/api/collections/${collection}/records${path}`, {
+    ...init,
+    headers: { 'Content-Type': 'application/json', 'X-Leaderboard-Key': KEY, ...(init.headers ?? {}) },
+  })
+  const body = (await res.json().catch(() => ({}))) as T
+  if (res.status >= 500) throw new Error(`PocketBase ${res.status}`)
+  return { ok: res.ok, status: res.status, body }
+}
+
+const list = <T>(collection: string, params: Record<string, string>) =>
+  pb<{ items: T[]; totalItems: number }>(collection, `?${new URLSearchParams(params)}`)
+
+interface ScoreRow {
+  id: string
+  name: string
+  value: number
+  at: number
+}
+
+const pocketbase: Store = {
+  async limited(bucket, visitor, limit, windowS) {
+    const since = Date.now() - windowS * 1000
+    const r = await list('lb_hits', {
+      perPage: '1',
+      skipTotal: '0',
+      fields: 'id',
+      filter: `bucket = ${q(bucket)} && visitor = ${q(visitor)} && created >= ${q(pbDate(since))}`,
+    })
+    if (!r.ok) throw new Error(`PocketBase ${r.status}`)
+    if (r.body.totalItems >= limit) return true
+    await pb('lb_hits', '', { method: 'POST', body: JSON.stringify({ bucket, visitor }) })
+    // Now and then, clear out hits older than a day so the table stays small.
+    if (Math.random() < 0.02) void trimHits()
+    return false
+  },
+
+  async spend(id) {
+    // The unique index on `token` turns a second use into a 400.
+    const r = await pb('lb_spent', '', { method: 'POST', body: JSON.stringify({ token: id }) })
+    return r.ok
+  },
+
+  async top(board, highWins, n) {
+    const r = await list<ScoreRow>('lb_scores', {
+      perPage: String(n),
+      skipTotal: '1',
+      fields: 'name,value,at',
+      filter: `board = ${q(board)}`,
+      sort: `${highWins ? '-' : ''}value,at`,
+    })
+    if (!r.ok) throw new Error(`PocketBase ${r.status}`)
+    return r.body.items.map(({ name, value, at }) => ({ name, value, at }))
+  },
+
+  async save(board, highWins, e, retry = true) {
+    const nameKey = e.name.toLowerCase()
+    const found = await list<ScoreRow>('lb_scores', {
+      perPage: '1',
+      skipTotal: '1',
+      filter: `board = ${q(board)} && name_key = ${q(nameKey)}`,
+    })
+    if (!found.ok) throw new Error(`PocketBase ${found.status}`)
+    const old = found.body.items[0]
+    let improved = false
+    let mine = old
+    if (!old) {
+      const r = await pb<ScoreRow>('lb_scores', '', { method: 'POST', body: JSON.stringify({ board, name_key: nameKey, ...e }) })
+      // Two first saves under one name at once: the unique index lets one in, and the other retries as an update.
+      if (!r.ok) {
+        if (retry) return pocketbase.save(board, highWins, e, false)
+        throw new Error(`PocketBase ${r.status}`)
       }
-      kv.set(key, { v: z, exp: 0 })
-      return changed
+      improved = true
+      mine = r.body
+    } else if (highWins ? e.value > old.value : e.value < old.value) {
+      const r = await pb<ScoreRow>('lb_scores', `/${old.id}`, { method: 'PATCH', body: JSON.stringify(e) })
+      improved = r.ok
+      if (r.ok) mine = r.body
     }
-    case 'ZRANGE': {
-      const z = get<Map<string, number>>(key) ?? new Map()
-      const rev = rest.includes('REV')
-      const sorted = [...z.entries()].sort((a, b) => (rev ? b[1] - a[1] : a[1] - b[1]))
-      const stop = Number(rest[1])
-      const picked = sorted.slice(Number(rest[0]), stop < 0 ? sorted.length + stop + 1 : stop + 1)
-      return rest.includes('WITHSCORES') ? picked.flatMap(([m, sc]) => [m, String(sc)]) : picked.map(([m]) => m)
-    }
-    case 'ZRANK':
-    case 'ZREVRANK': {
-      const z = get<Map<string, number>>(key) ?? new Map()
-      if (!z.has(rest[0])) return null
-      const sorted = [...z.entries()].sort((a, b) => (name === 'ZREVRANK' ? b[1] - a[1] : a[1] - b[1]))
-      return sorted.findIndex(([m]) => m === rest[0])
-    }
-    case 'ZREMRANGEBYRANK': {
-      const z = get<Map<string, number>>(key)
-      if (!z) return 0
-      const sorted = [...z.entries()].sort((a, b) => a[1] - b[1])
-      const start = Number(rest[0])
-      const stop = Number(rest[1])
-      const end = stop < 0 ? sorted.length + stop + 1 : stop + 1
-      const gone = sorted.slice(start < 0 ? Math.max(0, sorted.length + start) : start, end)
-      gone.forEach(([m]) => z.delete(m))
-      return gone.length
-    }
-    case 'HSET': {
-      const h = get<Map<string, string>>(key) ?? new Map()
-      for (let i = 0; i < rest.length; i += 2) h.set(rest[i], rest[i + 1])
-      kv.set(key, { v: h, exp: 0 })
-      return 1
-    }
-    case 'HMGET': {
-      const h = get<Map<string, string>>(key) ?? new Map()
-      return rest.map((f) => h.get(f) ?? null)
-    }
-    default:
-      throw new Error(`memory store: ${name} not supported`)
+    const better = highWins ? '>' : '<'
+    const ahead = await list('lb_scores', {
+      perPage: '1',
+      skipTotal: '0',
+      fields: 'id',
+      filter: `board = ${q(board)} && (value ${better} ${mine!.value} || (value = ${mine!.value} && at < ${mine!.at}))`,
+    })
+    return { rank: ahead.body.totalItems + 1, improved }
+  },
+}
+
+async function trimHits() {
+  try {
+    const old = await list<{ id: string }>('lb_hits', { perPage: '200', skipTotal: '1', fields: 'id', filter: `created < ${q(pbDate(Date.now() - 86400_000))}` })
+    await Promise.all((old.body.items ?? []).map((h) => pb('lb_hits', `/${h.id}`, { method: 'DELETE' })))
+  } catch {
+    /* next time */
   }
 }
+
+/* --------------------- in-memory stand-in for local runs --------------------- */
+
+const hits = new Map<string, number[]>()
+const spent = new Set<string>()
+const scores = new Map<string, Map<string, Entry>>()
+
+const memory: Store = {
+  async limited(bucket, visitor, limit, windowS) {
+    const k = `${bucket}:${visitor}`
+    const now = Date.now()
+    const recent = (hits.get(k) ?? []).filter((t) => t >= now - windowS * 1000)
+    if (recent.length >= limit) return true
+    hits.set(k, [...recent, now])
+    return false
+  },
+  async spend(id) {
+    if (spent.has(id)) return false
+    spent.add(id)
+    return true
+  },
+  async top(board, highWins, n) {
+    return sorted(board, highWins).slice(0, n)
+  },
+  async save(board, highWins, e) {
+    const b = scores.get(board) ?? new Map<string, Entry>()
+    scores.set(board, b)
+    const k = e.name.toLowerCase()
+    const old = b.get(k)
+    const improved = !old || (highWins ? e.value > old.value : e.value < old.value)
+    if (improved) b.set(k, e)
+    return { rank: sorted(board, highWins).findIndex((x) => x.name.toLowerCase() === k) + 1, improved }
+  },
+}
+
+function sorted(board: string, highWins: boolean) {
+  return [...(scores.get(board)?.values() ?? [])].sort((a, b) => (highWins ? b.value - a.value : a.value - b.value) || a.at - b.at)
+}
+
+export const store: Store = KEY ? pocketbase : memory

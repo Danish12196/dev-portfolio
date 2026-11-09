@@ -188,6 +188,36 @@ collection and tick `approved`. Delete anything you don't want. The site
 caches the list for a minute. If the key ever leaks, run the script again with
 `--new-key` and update the variable in Vercel.
 
+## Leaderboards
+
+Snake keeps a public top 10 (save a name when a game ends, or type `scores`),
+and there's a board for the fastest time to find every achievement.
+`api/leaderboard.ts` is a Vercel function in front of three PocketBase
+collections (`lb_scores`, `lb_spent`, `lb_hits`).
+
+Abuse checks: names are 2 to 16 characters and go through a swear filter that
+catches leetspeak and spaced-out letters, a few names (admin, danish, ...) are
+reserved, every save is rate limited per visitor (by a salted IP hash), and
+each game or run gets a signed token that works once. The server replays every
+snake game move by move from its seed before a score counts, and achievement
+times are capped by the server's own clock. Each name keeps only its best entry.
+
+Setting it up once:
+
+1. Create the collections (they touch nothing else on the server):
+
+   ```sh
+   # Windows cmd
+   set "PB_EMAIL=you@example.com" && set "PB_PASSWORD=..." && node scripts/setup-leaderboards.mjs
+   ```
+
+2. Add the `LEADERBOARD_KEY` it prints to the Vercel project's environment
+   variables and redeploy. Until then the games work but aren't ranked.
+
+To take someone off a board, delete their row in `lb_scores` at
+`pb.danishali.dev/_/`. If the key leaks, run the script again with `--new-key`
+and update the variable in Vercel.
+
 ## Deploying
 
 The site deploys to Vercel (`vercel.json` sends every route to the app so links
