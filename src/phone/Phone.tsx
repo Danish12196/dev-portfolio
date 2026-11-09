@@ -3,7 +3,7 @@ import { findProject, findReadme, getNode, projects, TRASH_DIR } from '../fs'
 import type { FsNode } from '../fs/types'
 import Icon from '../apps/Icon'
 import { specFor, WindowContent } from '../apps/registry'
-import { GUESTBOOK, registerOpener } from '../shell/opener'
+import { GUESTBOOK, registerOpener, STATS } from '../shell/opener'
 import Wallpaper from '../desktop/Wallpaper'
 import type { OpenSpec } from '../store/windows'
 import { SkyStar } from '../achievements/SkyStar'
@@ -133,6 +133,12 @@ export default function Phone() {
                 </button>
               </li>
             )}
+            <li>
+              <button type="button" onClick={() => open(STATS)}>
+                <Icon node="stats" size="xl" />
+                <span>Stats</span>
+              </button>
+            </li>
             {now && (
               <li>
                 <button type="button" onClick={() => open(specFor(now))}>

@@ -31,6 +31,13 @@ export function openTerminal() {
   terminalOpener()
 }
 
+export const STATS: OpenSpec = { kind: 'stats', title: 'Stats' }
+
+/** Windows that aren't a file, like Stats. */
+export function openStats() {
+  specOpener(STATS)
+}
+
 export const GUESTBOOK: OpenSpec = { kind: 'guestbook', title: 'Guestbook' }
 
 export function openGuestbook() {
