@@ -1,7 +1,7 @@
 import { displayPath, findApp, findProject, getNode, projects, resolvePath, root } from '../fs'
 import type { DirNode, FsNode } from '../fs/types'
 import { formatUpdated, NOW_PATH, readNow } from '../apps/now'
-import { openNode } from '../shell/opener'
+import { openGuestbook, openNode } from '../shell/opener'
 import { setTheme } from '../shell/theme'
 import { contact, CV_PATH, localTime } from '../shell/contact'
 import { EGG_COMMANDS, HIDDEN_FILES } from './eggs'
@@ -201,6 +201,13 @@ export const COMMANDS: Record<string, Command> = {
         row('local', txt(`${time} in ${c.location.split(',')[0]} (${gap})`))
       }
       print([txt('Or ', 'dim'), { t: 'open the contact card', cls: 'accent', open: CV_PATH }, txt(', which has the CV too.', 'dim')])
+    },
+  },
+  guestbook: {
+    desc: 'leave me a note',
+    run: (_a, { print }) => {
+      openGuestbook()
+      print([txt('opening the guestbook. notes reach me first; nice ones get pinned.', 'dim')])
     },
   },
   theme: {

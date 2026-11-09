@@ -3,7 +3,7 @@ import { findProject, findReadme, getNode, projects, TRASH_DIR } from '../fs'
 import type { FsNode } from '../fs/types'
 import Icon from '../apps/Icon'
 import { specFor, WindowContent } from '../apps/registry'
-import { registerOpener } from '../shell/opener'
+import { GUESTBOOK, registerOpener } from '../shell/opener'
 import Wallpaper from '../desktop/Wallpaper'
 import type { OpenSpec } from '../store/windows'
 
@@ -38,6 +38,7 @@ export default function Phone() {
     registerOpener(
       (node: FsNode) => setStack((s) => [...s, specFor(node)]),
       () => setStack((s) => [...s, { kind: 'terminal', title: 'Terminal' }]),
+      (spec) => setStack((s) => [...s, spec]),
     )
   }, [])
 
@@ -143,6 +144,14 @@ export default function Phone() {
                 </button>
               </li>
             )}
+            <li>
+              <button type="button" onClick={() => open(GUESTBOOK)}>
+                <span className="ic ic-xl ic-tile ic-guestbook" aria-hidden="true">
+                  ✎
+                </span>
+                <span>Guestbook</span>
+              </button>
+            </li>
             {trash && (
               <li>
                 <button type="button" onClick={() => open(specFor(trash))}>

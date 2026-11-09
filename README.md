@@ -116,6 +116,7 @@ becomes a download of that file instead.
 | `cv` | open the CV & contact window |
 | `contact` | email, links and my local time |
 | `theme light` / `theme dark` | switch theme |
+| `guestbook` | open the guestbook |
 | `clear`, `exit` | clear the screen, close the terminal |
 
 Tab completes commands and paths; the up and down arrows recall history.
@@ -155,6 +156,37 @@ src/styles/tokens.css every colour, font, radius and shadow
 The look is "Soft Paper": rounded pastel windows and folders, the Nunito font,
 an illustrated hills-and-sun wallpaper, and a terminal that is always green on
 black. Every colour, font and shadow comes from `src/styles/tokens.css`.
+
+## Guestbook
+
+Visitors can leave a note in the guestbook window (desktop icon, start menu,
+phone home screen, or `guestbook` in the terminal). Notes go to PocketBase and
+stay private until I approve them; only approved notes are shown on the site.
+
+`api/guestbook.ts` is a Vercel function that sits in front of PocketBase. It
+drops bots (a hidden honeypot field and a minimum time on the form), limits each
+visitor to 2 notes per 10 minutes and the whole site to 30 pending notes an
+hour, caps names at 40 characters and notes at 500, and allows one link per note.
+
+Setting it up once:
+
+1. Create the collection (it touches nothing else on the server):
+
+   ```sh
+   # Windows cmd
+   set "PB_EMAIL=you@example.com" && set "PB_PASSWORD=..." && node scripts/setup-guestbook.mjs
+   ```
+
+2. Add the `GUESTBOOK_KEY` it prints to the Vercel project's environment
+   variables and redeploy.
+3. Optional: set `GUESTBOOK_NOTIFY_URL` to a Discord webhook or an ntfy topic
+   URL (for example `https://ntfy.sh/some-long-secret-topic`) to get a ping for
+   every new note.
+
+To publish a note, open `pb.danishali.dev/_/`, go to the `guestbook`
+collection and tick `approved`. Delete anything you don't want. The site
+caches the list for a minute. If the key ever leaks, run the script again with
+`--new-key` and update the variable in Vercel.
 
 ## Deploying
 
