@@ -45,3 +45,9 @@ export function localTime(timezone: string, now = new Date()) {
   const gap = diff === 0 ? 'same time as you' : diff > 0 ? `${diff} ${hours} ahead of you` : `${-diff} ${hours} behind you`
   return { time, gap }
 }
+
+/** cv.md carries a "coming soon" comment while the real CV is being rewritten. */
+export function cvComingSoon() {
+  const node = getNode(CV_PATH)
+  return node?.type === 'file' && /<!--\s*coming soon\s*-->/i.test(node.text ?? '')
+}

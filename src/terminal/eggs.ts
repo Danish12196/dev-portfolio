@@ -6,6 +6,8 @@ import { cmd, err, txt, type Line, type Seg } from './lines'
 import { later, useTerm, type Skin } from './store'
 import { EGGS, findEgg, foundEggs, resetEggs } from './found'
 import type { Command } from './commands'
+import { CV_PATH } from '../shell/contact'
+import { openNode } from '../shell/opener'
 
 const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)]
 
@@ -267,6 +269,13 @@ export const EGG_COMMANDS: Record<string, Command> = {
     hidden: true,
     run: (args, { print }) => {
       if (!args.length) return print(err('usage: sudo <command>'))
+      // The one sudo that works.
+      if (/^hire\s+(danish|me)$/i.test(args.join(' '))) {
+        findEgg('sudo')
+        const cv = getNode(CV_PATH)
+        if (cv) openNode(cv)
+        return print([txt('Permission granted. ', 'accent'), txt('Opening the contact card…', 'dim')])
+      }
       if (args.join(' ').toLowerCase() === 'make me a sandwich') {
         findEgg('sudo')
         return print([txt('Okay.')])

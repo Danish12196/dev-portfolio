@@ -1,8 +1,8 @@
 {
   "name": "Bibliotheca",
-  "tagline": "A web app for sorting and organising your library. Last touched November 2022",
+  "tagline": "A web app for sorting and organising your library. On pause since November 2022",
   "year": 2022,
   "stack": ["JavaScript"],
-  "status": "abandoned",
+  "status": "on pause",
   "color": "#C9C1B4"
 }
