@@ -29,6 +29,7 @@ function Clock() {
 function StartMenu({ onClose }: { onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null)
   const about = getNode('/about.md')
+  const cv = getNode('/cv.md')
   // Move focus into the menu, and give it back to the start button when it closes.
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null
@@ -92,6 +93,11 @@ function StartMenu({ onClose }: { onClose: () => void }) {
         {about && (
           <button type="button" className="pill pill-dark" onClick={() => go(about)}>
             About me
+          </button>
+        )}
+        {cv && (
+          <button type="button" className="pill" onClick={() => go(cv)}>
+            CV & contact
           </button>
         )}
         <button type="button" className="pill" onClick={() => (openTerminal(), onClose())}>
@@ -293,6 +299,7 @@ export default function Desktop() {
 
   const top = topWindowId(windows)
   const about = getNode('/about.md')
+  const cv = getNode('/cv.md')
 
   return (
     <div className="desktop">
@@ -305,6 +312,7 @@ export default function Desktop() {
           ))}
           <DeskIcon node="terminal" label="terminal" onOpen={openTerminal} />
           {about && <DeskIcon node={about} label="about me" onOpen={() => openNode(about)} />}
+          {cv && <DeskIcon node={cv} label="cv & contact" onOpen={() => openNode(cv)} />}
         </ul>
         <NowNote />
         {windows.length === 0 && <p className="desk-hint">Double-click a folder (or select it and press Enter) to open it. The dev/portfolio button opens the start menu.</p>}

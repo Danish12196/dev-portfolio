@@ -25,6 +25,8 @@ function StatusBar() {
 export default function Phone() {
   // /projects/<name> opens that project's folder (and its README on top).
   const [stack, setStack] = useState<OpenSpec[]>(() => {
+    const cv = getNode('/cv.md')
+    if (cv && /^\/(cv|contact)\/?$/i.test(location.pathname)) return [specFor(cv)]
     const match = location.pathname.match(/^\/projects\/([^/]+)/)
     const project = match && findProject(decodeURIComponent(match[1]))
     if (!project) return []
@@ -55,6 +57,7 @@ export default function Phone() {
   const current = stack[stack.length - 1]
   const about = getNode('/about.md')
   const now = getNode('/now.md')
+  const cv = getNode('/cv.md')
   const files = getNode('/projects')
   const open = (spec: OpenSpec) => setStack((s) => [...s, spec])
 
@@ -128,6 +131,14 @@ export default function Phone() {
                     now
                   </span>
                   <span>Now</span>
+                </button>
+              </li>
+            )}
+            {cv && (
+              <li>
+                <button type="button" onClick={() => open(specFor(cv))}>
+                  <Icon node={cv} size="xl" />
+                  <span>CV</span>
                 </button>
               </li>
             )}
