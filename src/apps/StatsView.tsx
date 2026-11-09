@@ -170,7 +170,7 @@ export default function StatsView() {
             </>
           )}
         </dl>
-        {visits && visits.visits > 0 && <p className="st-fine">Visits are counted without cookies or IDs: each visit only sends how long the tab was open.</p>}
+        {visits && visits.visits > 0 && <p className="st-fine">Visits are counted without cookies or tracking: each page load only sends how long the tab was open.</p>}
       </Section>
 
       {!c && !gh?.commits?.length && <p className="st-fine">GitHub couldn&apos;t be reached when this version was built, so its numbers will be back after the next deploy.</p>}

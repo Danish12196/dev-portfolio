@@ -150,13 +150,24 @@ views and visits to this site.
   Vercel environment variables: `GITHUB_TOKEN` (a token with no scopes; exact
   counts and a higher rate limit) and `ITCH_API_KEY` (itch.io > Settings > API
   keys; without it the itch.io section is hidden).
-- **Visits and average time on the site** come from `api/visit.js`. Each page
-  load sends one number, the seconds the tab was visible (capped at 30 minutes).
-  No cookies, no IDs, no IP addresses are stored; the server keeps only running
-  totals. Rate limiting uses a salted hash of IP and browser that expires after
-  an hour. Browsers with Do Not Track or Global Privacy Control are not counted.
-  It needs an Upstash Redis database connected to the Vercel project (Storage >
-  Upstash for Redis, free tier); without one the visits rows are hidden.
+- **Visits and average time on the site** come from `api/visit.ts`, which
+  stores them on PocketBase. Each page load is one row holding only the seconds
+  the tab was visible (capped at 30 minutes). No cookies and nothing in the
+  browser's storage: the page keeps a random id in memory so later reports add
+  to the same row, and forgets it on reload. Rate limiting uses the IP hashed
+  with a salt that changes every day. Browsers with Do Not Track or Global
+  Privacy Control are not counted. Until it's set up, the visits rows are hidden.
+
+  Setting it up once:
+
+  ```sh
+  # Windows cmd
+  set "PB_EMAIL=you@example.com" && set "PB_PASSWORD=..." && node scripts/setup-visits.mjs
+  ```
+
+  It only adds the `site_visits` and `site_visit_totals` collections. Add the
+  `VISITS_KEY` it prints to the Vercel project's environment variables and
+  redeploy.
 
 ## How it's built
 
@@ -167,7 +178,7 @@ phone UI share the same file tree and the same viewers.
 content/              projects and about page (edit these)
 scripts/              build-content.mjs: content/ -> src/generated/fs.json
                       build-stats.mjs: GitHub and itch.io numbers -> public/stats.json
-api/visit.js          anonymous visit and time-on-site counter (Vercel function)
+api/visit.ts          anonymous visit and time-on-site counter (Vercel function)
 src/fs/               file tree helpers (paths, lookups)
 src/store/windows.ts  window manager state, saved to localStorage
 src/terminal/         terminal commands and tab completion
