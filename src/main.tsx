@@ -4,6 +4,9 @@ import './shell/theme'
 import './styles/tokens.css'
 import './styles/app.css'
 import App from './App'
+import { startVisitClock } from './shell/visit'
+
+startVisitClock()
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>

@@ -1,4 +1,5 @@
 import type { FsNode } from '../fs/types'
+import type { OpenSpec } from '../store/windows'
 
 /**
  * The desktop and the phone UI each register how to open a file or folder.
@@ -6,13 +7,16 @@ import type { FsNode } from '../fs/types'
  */
 type Opener = (node: FsNode) => void
 type TerminalOpener = () => void
+type SpecOpener = (spec: OpenSpec) => void
 
 let opener: Opener = () => {}
 let terminalOpener: TerminalOpener = () => {}
+let specOpener: SpecOpener = () => {}
 
-export function registerOpener(fn: Opener, terminal: TerminalOpener) {
+export function registerOpener(fn: Opener, terminal: TerminalOpener, spec: SpecOpener) {
   opener = fn
   terminalOpener = terminal
+  specOpener = spec
 }
 
 export function openNode(node: FsNode) {
@@ -25,4 +29,11 @@ export function openNode(node: FsNode) {
 
 export function openTerminal() {
   terminalOpener()
+}
+
+export const STATS: OpenSpec = { kind: 'stats', title: 'Stats' }
+
+/** Windows that aren't a file, like Stats. */
+export function openStats() {
+  specOpener(STATS)
 }

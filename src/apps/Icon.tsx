@@ -1,15 +1,24 @@
 import type { CSSProperties } from 'react'
 import type { FsNode } from '../fs/types'
 
-type IconNode = FsNode | 'terminal' | 'about'
+type IconNode = FsNode | 'terminal' | 'about' | 'stats'
 
 /** Rounded, outlined Soft Paper icons, drawn with CSS so they follow the theme. */
-export default function Icon({ node, size = 'md', color }: { node: IconNode; size?: 'sm' | 'md' | 'lg'; color?: string }) {
+export default function Icon({ node, size = 'md', color }: { node: IconNode; size?: 'sm' | 'md' | 'lg' | 'xl'; color?: string }) {
   const cls = `ic ic-${size}`
   if (node === 'terminal')
     return (
       <span className={`${cls} ic-term`} aria-hidden="true">
         &gt;_
+      </span>
+    )
+  if (node === 'stats')
+    return (
+      <span className={`${cls} ic-tile ic-stats`} aria-hidden="true">
+        <i />
+        <i />
+        <i />
+        <i />
       </span>
     )
   if (node === 'about' || (node.type === 'file' && node.name === 'about.md'))

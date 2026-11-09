@@ -3,7 +3,7 @@ import { getNode, projects } from '../fs'
 import type { DirNode, FsNode } from '../fs/types'
 import { specFor, WindowContent } from '../apps/registry'
 import Icon from '../apps/Icon'
-import { openNode, openTerminal, registerOpener } from '../shell/opener'
+import { openNode, openStats, openTerminal, registerOpener } from '../shell/opener'
 import { useTheme } from '../shell/theme'
 import { topWindowId, useWindows, type Win } from '../store/windows'
 import Wallpaper from './Wallpaper'
@@ -95,6 +95,9 @@ function StartMenu({ onClose }: { onClose: () => void }) {
         )}
         <button type="button" className="pill" onClick={() => (openTerminal(), onClose())}>
           Terminal
+        </button>
+        <button type="button" className="pill" onClick={() => (openStats(), onClose())}>
+          Stats
         </button>
         <a className="pill" href={GITHUB} target="_blank" rel="noreferrer">
           GitHub
@@ -228,7 +231,7 @@ function Taskbar({ windows }: { windows: Win[] }) {
   )
 }
 
-function DeskIcon({ node, label, onOpen, color }: { node: FsNode | 'terminal'; label: string; onOpen: () => void; color?: string }) {
+function DeskIcon({ node, label, onOpen, color }: { node: FsNode | 'terminal' | 'stats'; label: string; onOpen: () => void; color?: string }) {
   return (
     <li>
       <button
@@ -263,6 +266,7 @@ export default function Desktop() {
     registerOpener(
       (node: FsNode) => void open(specFor(node)),
       () => void open({ kind: 'terminal', title: 'Terminal' }),
+      (spec) => void open(spec),
     )
   }, [open])
 
@@ -279,6 +283,7 @@ export default function Desktop() {
             <DeskIcon key={p.path} node={p} label={p.name} onOpen={() => openNode(p)} />
           ))}
           <DeskIcon node="terminal" label="terminal" onOpen={openTerminal} />
+          <DeskIcon node="stats" label="stats" onOpen={openStats} />
           {about && <DeskIcon node={about} label="about me" onOpen={() => openNode(about)} />}
         </ul>
         {windows.length === 0 && <p className="desk-hint">Double-click a folder (or select it and press Enter) to open it. The dev/portfolio button opens the start menu.</p>}

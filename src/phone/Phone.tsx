@@ -3,7 +3,7 @@ import { findProject, findReadme, getNode, projects } from '../fs'
 import type { FsNode } from '../fs/types'
 import Icon from '../apps/Icon'
 import { specFor, WindowContent } from '../apps/registry'
-import { registerOpener } from '../shell/opener'
+import { registerOpener, STATS } from '../shell/opener'
 import Wallpaper from '../desktop/Wallpaper'
 import type { OpenSpec } from '../store/windows'
 
@@ -36,6 +36,7 @@ export default function Phone() {
     registerOpener(
       (node: FsNode) => setStack((s) => [...s, specFor(node)]),
       () => setStack((s) => [...s, { kind: 'terminal', title: 'Terminal' }]),
+      (spec) => setStack((s) => [...s, spec]),
     )
   }, [])
 
@@ -120,6 +121,12 @@ export default function Phone() {
                 </button>
               </li>
             )}
+            <li>
+              <button type="button" onClick={() => open(STATS)}>
+                <Icon node="stats" size="xl" />
+                <span>Stats</span>
+              </button>
+            </li>
           </ul>
           <nav className="ph-dock" aria-label="Dock">
             <button type="button" onClick={() => open({ kind: 'terminal', title: 'Terminal' })}>

@@ -2,6 +2,7 @@ import { displayPath, findReadme, projectAt } from '../fs'
 import type { FsNode } from '../fs/types'
 import type { OpenSpec, Win } from '../store/windows'
 import FolderView from './FolderView'
+import StatsView from './StatsView'
 import Terminal from './Terminal'
 import { AppFrame, ImageView, MarkdownView, PdfView, TextView, VideoView } from './Viewers'
 
@@ -51,6 +52,8 @@ export function WindowContent({ win, opts }: { win: Pick<Win, 'kind' | 'path' | 
       return <VideoView path={win.path} />
     case 'pdf':
       return <PdfView path={win.path} />
+    case 'stats':
+      return <StatsView />
     case 'app':
       return <AppFrame url={win.url} title={win.title} />
     default:
