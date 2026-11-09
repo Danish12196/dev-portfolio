@@ -1410,3 +1410,83 @@ a.seg,
 .term-program-quit:focus-visible {
   color: var(--term-accent);
 }
+
+/* Leaderboard panel inside snake */
+.lb-panel {
+  position: absolute;
+  left: 50%;
+  bottom: 12px;
+  transform: translateX(-50%);
+  width: min(320px, calc(100% - 24px));
+  max-height: calc(100% - 40%);
+  overflow-y: auto;
+  padding: 10px 12px;
+  border: 1px solid var(--term-line);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--term-bg) 92%, transparent);
+  color: var(--term-fg);
+  font: 13px/1.5 'JetBrains Mono', ui-monospace, monospace;
+}
+.lb-form label {
+  display: block;
+  color: var(--term-accent);
+  margin-bottom: 4px;
+}
+.lb-row {
+  display: flex;
+  gap: 6px;
+}
+.lb-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 6px;
+  border: 1px solid var(--term-dim);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--term-fg);
+  font: inherit;
+}
+.lb-row input:focus-visible {
+  outline: 1px solid var(--term-accent);
+}
+.lb-row button {
+  padding: 3px 10px;
+  border: 1px solid var(--term-dim);
+  border-radius: 4px;
+  color: var(--term-accent);
+  font: inherit;
+}
+.lb-row button:hover,
+.lb-row button:focus-visible {
+  border-color: var(--term-accent);
+}
+.lb-msg {
+  margin: 6px 0 0;
+}
+.lb-dim {
+  color: var(--term-dim);
+}
+.lb-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+.lb-list li {
+  display: flex;
+  gap: 10px;
+}
+.lb-rank {
+  width: 2ch;
+  text-align: right;
+  color: var(--term-dim);
+}
+.lb-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.lb-me {
+  color: var(--term-accent);
+  font-weight: 700;
+}

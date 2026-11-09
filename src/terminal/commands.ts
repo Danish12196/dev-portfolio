@@ -4,6 +4,7 @@ import { openNode } from '../shell/opener'
 import { setTheme } from '../shell/theme'
 import { EGG_COMMANDS, HIDDEN_FILES } from './eggs'
 import { findEgg } from './found'
+import { LEADERBOARD_COMMANDS } from '../leaderboard/commands'
 import { cmd, err, txt, type Line, type Seg } from './lines'
 
 export type { Line, Seg } from './lines'
@@ -188,6 +189,7 @@ export const COMMANDS: Record<string, Command> = {
     run: (_a, { exit }) => exit(),
   },
   ...EGG_COMMANDS,
+  ...LEADERBOARD_COMMANDS,
 }
 
 const visible = () => Object.keys(COMMANDS).filter((c) => !COMMANDS[c].hidden)
