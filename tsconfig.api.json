@@ -15,5 +15,5 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["api", "src/leaderboard/names.ts", "src/leaderboard/snakeEngine.ts"]
+  "include": ["api", "src/leaderboard/names.ts", "src/leaderboard/snakeEngine.ts", "src/achievements/list.ts"]
 }

@@ -623,3 +623,39 @@
   right: 10px;
   color: var(--muted);
 }
+
+/* Leaderboard box in the notepad, once everything is found */
+.lb-ach,
+.lb-ach-note {
+  margin: 0 0 10px;
+  font-size: 13px;
+}
+.lb-ach label {
+  display: block;
+  margin-bottom: 4px;
+}
+.lb-ach-row {
+  display: flex;
+  gap: 6px;
+}
+.lb-ach-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 3px 8px;
+  border: var(--stroke) solid var(--ink);
+  border-radius: 8px;
+  background: var(--paper, #fff);
+  color: var(--ink);
+  font: inherit;
+}
+.lb-ach-row button,
+.lb-ach-link {
+  font: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  color: var(--ink);
+}
+.lb-ach-msg {
+  margin: 4px 0 0;
+  color: var(--muted);
+}

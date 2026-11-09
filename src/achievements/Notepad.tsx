@@ -1,5 +1,8 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { ACHIEVEMENTS, formatDuration, getProgress, resetAchievements, runSeed, unlock, useAchievements } from '.'
+
+// Loaded only once everything is found; it brings the name filter with it.
+const AchBoard = lazy(() => import('../leaderboard/AchBoard'))
 
 function useActiveTime() {
   const [ms, setMs] = useState(() => getProgress().activeMs)
@@ -92,7 +95,11 @@ export default function Notepad() {
           <span style={{ width: `${(count / ACHIEVEMENTS.length) * 100}%` }} />
         </div>
         {finishedAt && <p className="np-done">All found. You are officially a power user.</p>}
-        {/* Leaderboard slot: a "submit your time" button can go here. */}
+        {finishedAt && (
+          <Suspense fallback={null}>
+            <AchBoard />
+          </Suspense>
+        )}
         <ol className="np-list">
           {done.map((a) => (
             <li key={a.id} className="np-found">

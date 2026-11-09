@@ -15,6 +15,7 @@
 import { store, storeMissing, type Entry } from './_lib/store.js'
 import { ipKey, nonce, secretMissing, sign, verify } from './_lib/token.js'
 import { nameProblem, tidyName } from '../src/leaderboard/names.js'
+import { ACHIEVEMENTS } from '../src/achievements/list.js'
 import { MAX_COLS, MAX_ROWS, MIN_COLS, MIN_ROWS, replay, type Move } from '../src/leaderboard/snakeEngine.js'
 
 const TOP = 10
@@ -117,10 +118,9 @@ interface AchFinish {
   iat: number
 }
 const RUN_TTL = 90 * DAY
-/** No one finds everything in under this, even knowing every answer. */
-const MIN_RUN_MS = 20_000
-/** Fewest achievements a full set can have, so a short list can't be passed off as complete. */
-const MIN_ACHIEVEMENTS = Number(process.env.LEADERBOARD_MIN_ACHIEVEMENTS) || 10
+/** No one finds all of them in under this, even knowing every answer. */
+const MIN_RUN_MS = 60_000
+const ACHIEVEMENT_IDS = new Set(ACHIEVEMENTS.map((a) => a.id))
 
 async function achStart(req: Request, body: Record<string, unknown>) {
   const run = String(body.runId ?? '')
@@ -139,8 +139,8 @@ async function achFinish(req: Request, body: Record<string, unknown>) {
   const found = body.found as Record<string, number>
   if (!found || typeof found !== 'object') return fail('bad run')
   const ids = Object.keys(found)
-  if (ids.length < MIN_ACHIEVEMENTS || ids.length > 200) return fail('not everything is found yet')
-  if (!ids.every((id) => /^[\w-]{1,40}$/.test(id) && Number.isFinite(found[id]))) return fail('bad run')
+  if (ids.length !== ACHIEVEMENT_IDS.size || !ids.every((id) => ACHIEVEMENT_IDS.has(id))) return fail('not everything is found yet')
+  if (!ids.every((id) => Number.isFinite(found[id]))) return fail('bad run')
 
   // Rank on time with the tab open when the browser reports it, but never on
   // less than the slowest unlock or more than the server's own clock allows.
