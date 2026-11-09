@@ -29,6 +29,7 @@
   --btn-min: #f7d774;
   --btn-max: #a8d8b0;
   --btn-close: #f49a8c;
+  --now-note: #fdf0b8;
   --accent: var(--rust);
   --on-pastel: #2a2622;
   --focus: #2a2622;
@@ -66,6 +67,7 @@
   --muted: #c2b6a6;
   --muted-2: #d6cbbb;
   --peach-soft: #4a3526;
+  --now-note: #e2cf86;
   --mint-soft: #2c3f33;
   --accent: #f7b267;
   --focus: #f7b267;

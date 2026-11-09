@@ -1,0 +1,12 @@
+{
+  "name": "Danish Ali",
+  "role": "Developer",
+  "location": "Dubai, UAE",
+  "timezone": "Asia/Dubai",
+  "email": "",
+  "links": [
+    { "label": "GitHub", "url": "https://github.com/Danish12196" },
+    { "label": "itch.io", "url": "https://danish-gamedev.itch.io" },
+    { "label": "LinkedIn", "url": "" }
+  ]
+}

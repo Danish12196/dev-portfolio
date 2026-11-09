@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react'
-import { getNode, projects } from '../fs'
+import { getNode, projects, TRASH_DIR } from '../fs'
 import type { DirNode, FsNode } from '../fs/types'
 import { specFor, WindowContent } from '../apps/registry'
 import Icon from '../apps/Icon'
-import { openNode, openTerminal, registerOpener } from '../shell/opener'
+import { formatUpdated, NOW_PATH, readNow } from '../apps/now'
+import { openGuestbook, openNode, openTerminal, registerOpener } from '../shell/opener'
 import { useTheme } from '../shell/theme'
 import { topWindowId, useWindows, type Win } from '../store/windows'
 import Wallpaper from './Wallpaper'
@@ -28,6 +29,7 @@ function Clock() {
 function StartMenu({ onClose }: { onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null)
   const about = getNode('/about.md')
+  const cv = getNode('/cv.md')
   // Move focus into the menu, and give it back to the start button when it closes.
   useEffect(() => {
     const opener = document.activeElement as HTMLElement | null
@@ -93,8 +95,16 @@ function StartMenu({ onClose }: { onClose: () => void }) {
             About me
           </button>
         )}
+        {cv && (
+          <button type="button" className="pill" onClick={() => go(cv)}>
+            CV & contact
+          </button>
+        )}
         <button type="button" className="pill" onClick={() => (openTerminal(), onClose())}>
           Terminal
+        </button>
+        <button type="button" className="pill" onClick={() => (openGuestbook(), onClose())}>
+          Guestbook
         </button>
         <a className="pill" href={GITHUB} target="_blank" rel="noreferrer">
           GitHub
@@ -228,7 +238,31 @@ function Taskbar({ windows }: { windows: Win[] }) {
   )
 }
 
-function DeskIcon({ node, label, onOpen, color }: { node: FsNode | 'terminal'; label: string; onOpen: () => void; color?: string }) {
+/** A sticky note on the desktop listing what I'm working on (content/now.md). */
+function NowNote() {
+  const now = readNow()
+  const node = getNode(NOW_PATH)
+  if (!now || !node) return null
+  const when = formatUpdated(now.updated)
+  return (
+    <aside className="now-note" aria-labelledby="now-note-title">
+      <h2 id="now-note-title">
+        <span className="now-dot" aria-hidden="true" />
+        Working on
+      </h2>
+      <ul>
+        {now.items.slice(0, 4).map((item) => (
+          <li key={item}>{item}</li>
+        ))}
+      </ul>
+      <button type="button" className="now-more" onClick={() => openNode(node)}>
+        {when ? `Updated ${when}` : 'Open note'} · now.md
+      </button>
+    </aside>
+  )
+}
+
+function DeskIcon({ node, label, onOpen, color }: { node: FsNode | 'terminal' | 'guestbook'; label: string; onOpen: () => void; color?: string }) {
   return (
     <li>
       <button
@@ -263,11 +297,14 @@ export default function Desktop() {
     registerOpener(
       (node: FsNode) => void open(specFor(node)),
       () => void open({ kind: 'terminal', title: 'Terminal' }),
+      (spec) => void open(spec),
     )
   }, [open])
 
   const top = topWindowId(windows)
   const about = getNode('/about.md')
+  const cv = getNode('/cv.md')
+  const trash = getNode(TRASH_DIR)
 
   return (
     <div className="desktop">
@@ -280,7 +317,11 @@ export default function Desktop() {
           ))}
           <DeskIcon node="terminal" label="terminal" onOpen={openTerminal} />
           {about && <DeskIcon node={about} label="about me" onOpen={() => openNode(about)} />}
+          {cv && <DeskIcon node={cv} label="cv & contact" onOpen={() => openNode(cv)} />}
+          <DeskIcon node="guestbook" label="guestbook" onOpen={openGuestbook} />
+          {trash && <DeskIcon node={trash} label="trash" onOpen={() => openNode(trash)} />}
         </ul>
+        <NowNote />
         {windows.length === 0 && <p className="desk-hint">Double-click a folder (or select it and press Enter) to open it. The dev/portfolio button opens the start menu.</p>}
         {windows.map((w) => (
           <Window key={w.id} win={w} active={w.id === top}>
