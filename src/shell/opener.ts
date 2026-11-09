@@ -31,6 +31,33 @@ export function openTerminal() {
   terminalOpener()
 }
 
+export const UPDATES: OpenSpec = { kind: 'updates', title: 'System Updates' }
+
+export function openUpdates() {
+  specOpener(UPDATES)
+}
+
+export const SOURCE_URL = 'https://github.com/Danish12196/dev-portfolio'
+
+export function viewSource() {
+  window.open(SOURCE_URL, '_blank', 'noopener,noreferrer')
+}
+
+/** The wallpaper picker registers itself here, so the desktop menu can open it once it exists. */
+let wallpaperPicker: (() => void) | undefined
+
+export function registerWallpaperPicker(fn: (() => void) | undefined) {
+  wallpaperPicker = fn
+}
+
+export function hasWallpaperPicker() {
+  return Boolean(wallpaperPicker)
+}
+
+export function openWallpaperPicker() {
+  wallpaperPicker?.()
+}
+
 export const STATS: OpenSpec = { kind: 'stats', title: 'Stats' }
 
 /** Windows that aren't a file, like Stats. */
@@ -46,18 +73,3 @@ export function openGuestbook() {
 
 /** The wallpaper settings window. */
 export const WALLPAPER_SPEC: OpenSpec = { kind: 'wallpaper', title: 'Wallpaper' }
-
-/** Whoever shows the wallpaper picker (desktop or phone) registers it; menus check before offering it. */
-let wallpaperPicker: (() => void) | undefined
-
-export function registerWallpaperPicker(fn: (() => void) | undefined) {
-  wallpaperPicker = fn
-}
-
-export function hasWallpaperPicker() {
-  return Boolean(wallpaperPicker)
-}
-
-export function openWallpaperPicker() {
-  wallpaperPicker?.()
-}

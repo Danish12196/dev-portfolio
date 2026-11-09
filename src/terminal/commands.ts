@@ -2,7 +2,7 @@ import { displayPath, findApp, findProject, getNode, projects, resolvePath, root
 import type { DirNode, FsNode } from '../fs/types'
 import { ago, duration, level, loadStats, loadVisits, weeks } from '../apps/stats'
 import { formatUpdated, NOW_PATH, readNow } from '../apps/now'
-import { openGuestbook, openNode, openStats, openWallpaperPicker } from '../shell/opener'
+import { openGuestbook, openNode, openStats, openUpdates, openWallpaperPicker, SOURCE_URL } from '../shell/opener'
 import { setTheme } from '../shell/theme'
 import { contact, CV_PATH, localTime } from '../shell/contact'
 import { startScreensaver } from '../shell/screensaver'
@@ -257,6 +257,17 @@ export const COMMANDS: Record<string, Command> = {
       }
       print([txt('Or ', 'dim'), { t: 'open the contact card', cls: 'accent', open: CV_PATH }, txt(', which has the CV too.', 'dim')])
     },
+  },
+  updates: {
+    desc: "what's changed on this site lately",
+    run: (_a, { print }) => {
+      openUpdates()
+      print([txt('opening System Updates', 'dim')])
+    },
+  },
+  source: {
+    desc: "this site's source code",
+    run: (_a, { print }) => print([txt('Source: ', 'dim'), { t: SOURCE_URL.replace('https://', ''), href: SOURCE_URL }]),
   },
   guestbook: {
     desc: 'leave me a note',

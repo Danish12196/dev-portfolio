@@ -6,6 +6,7 @@ import CvView from './CvView'
 import FolderView from './FolderView'
 import StatsView from './StatsView'
 import Guestbook from './Guestbook'
+import Updates from './Updates'
 import Terminal from './Terminal'
 import WallpaperPicker from './WallpaperPicker'
 import { AppFrame, ImageView, MarkdownView, PdfView, TextView, VideoView } from './Viewers'
@@ -66,6 +67,8 @@ export function WindowContent({ win, opts }: { win: Pick<Win, 'kind' | 'path' | 
       return <CvView />
     case 'guestbook':
       return <Guestbook />
+    case 'updates':
+      return <Updates />
     case 'app':
       return <AppFrame url={win.url} title={win.title} />
     default:
