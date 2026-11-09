@@ -3,6 +3,7 @@ import type { FsNode } from '../fs/types'
 import type { OpenSpec, Win } from '../store/windows'
 import FolderView from './FolderView'
 import Terminal from './Terminal'
+import WallpaperPicker from './WallpaperPicker'
 import { AppFrame, ImageView, MarkdownView, PdfView, TextView, VideoView } from './Viewers'
 
 /** What kind of window a file or folder opens in. */
@@ -51,6 +52,8 @@ export function WindowContent({ win, opts }: { win: Pick<Win, 'kind' | 'path' | 
       return <VideoView path={win.path} />
     case 'pdf':
       return <PdfView path={win.path} />
+    case 'wallpaper':
+      return <WallpaperPicker />
     case 'app':
       return <AppFrame url={win.url} title={win.title} />
     default:

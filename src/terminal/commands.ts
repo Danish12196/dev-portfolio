@@ -1,7 +1,9 @@
 import { displayPath, findApp, findProject, getNode, projects, resolvePath, root } from '../fs'
 import type { DirNode, FsNode } from '../fs/types'
-import { openNode } from '../shell/opener'
+import { openNode, openWallpaperPicker } from '../shell/opener'
+import { startScreensaver } from '../shell/screensaver'
 import { setTheme } from '../shell/theme'
+import { findWallpaper, getWallpaper, setWallpaper, WALLPAPERS } from '../shell/wallpaper'
 import { EGG_COMMANDS, HIDDEN_FILES } from './eggs'
 import { findEgg } from './found'
 import { cmd, err, txt, type Line, type Seg } from './lines'
@@ -168,6 +170,32 @@ export const COMMANDS: Record<string, Command> = {
       if (args[0] !== 'light' && args[0] !== 'dark') return print(err('theme: use `theme light` or `theme dark`'))
       setTheme(args[0])
       print([txt(`theme set to ${args[0]}`, 'dim')])
+    },
+  },
+  wallpaper: {
+    desc: 'pick a desktop background',
+    usage: 'wallpaper [name]',
+    run: (args, { print }) => {
+      const name = args.join(' ')
+      if (!name) {
+        openWallpaperPicker()
+        const segs: Seg[] = [txt('wallpapers: ', 'dim')]
+        WALLPAPERS.forEach((w, i) => {
+          if (i) segs.push(txt('  '))
+          segs.push(w.id === getWallpaper().id ? txt(`[${w.id}]`, 'bold') : cmd(w.id, `wallpaper ${w.id}`))
+        })
+        return print(segs)
+      }
+      const wp = findWallpaper(name)
+      if (!wp) return print(err(`wallpaper: no wallpaper called ${name}. Try \`wallpaper\` for the list.`))
+      setWallpaper(wp.id)
+      print([txt(`wallpaper set to ${wp.name}`, 'dim')])
+    },
+  },
+  screensaver: {
+    desc: 'start the screensaver now',
+    run: (_a, { print }) => {
+      if (!startScreensaver()) print(err('screensaver: phones lock their own screen'))
     },
   },
   echo: {

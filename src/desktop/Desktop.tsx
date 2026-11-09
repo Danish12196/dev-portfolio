@@ -1,11 +1,13 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { getNode, projects } from '../fs'
 import type { DirNode, FsNode } from '../fs/types'
 import { specFor, WindowContent } from '../apps/registry'
 import Icon from '../apps/Icon'
-import { openNode, openTerminal, registerOpener } from '../shell/opener'
+import { openNode, openTerminal, openWallpaperPicker, registerOpener } from '../shell/opener'
 import { useTheme } from '../shell/theme'
 import { topWindowId, useWindows, type Win } from '../store/windows'
+import Boot from './Boot'
+import Screensaver from './Screensaver'
 import Wallpaper from './Wallpaper'
 import Window from './Window'
 
@@ -95,6 +97,9 @@ function StartMenu({ onClose }: { onClose: () => void }) {
         )}
         <button type="button" className="pill" onClick={() => (openTerminal(), onClose())}>
           Terminal
+        </button>
+        <button type="button" className="pill" onClick={() => (openWallpaperPicker(), onClose())}>
+          Wallpaper
         </button>
         <a className="pill" href={GITHUB} target="_blank" rel="noreferrer">
           GitHub
@@ -250,6 +255,52 @@ function DeskIcon({ node, label, onOpen, color }: { node: FsNode | 'terminal'; l
   )
 }
 
+/** Right-click on the desktop itself: the usual handful of desktop actions. */
+function DesktopMenu({ at, onClose }: { at: { x: number; y: number }; onClose: () => void }) {
+  const ref = useRef<HTMLDivElement>(null)
+  const [theme, setTheme] = useTheme()
+  useEffect(() => {
+    ref.current?.querySelector<HTMLElement>('button')?.focus()
+    const onDown = (e: PointerEvent) => !ref.current?.contains(e.target as Node) && onClose()
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') return onClose()
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+      e.preventDefault()
+      const items = [...(ref.current?.querySelectorAll<HTMLElement>('button') ?? [])]
+      const at = items.indexOf(document.activeElement as HTMLElement)
+      items[(at + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length]?.focus()
+    }
+    window.addEventListener('pointerdown', onDown, true)
+    window.addEventListener('keydown', onKey)
+    window.addEventListener('blur', onClose)
+    return () => {
+      window.removeEventListener('pointerdown', onDown, true)
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('blur', onClose)
+    }
+  }, [onClose])
+  const run = (fn: () => void) => () => {
+    fn()
+    onClose()
+  }
+  // Keep the menu on screen near the right and bottom edges.
+  const x = Math.min(at.x, window.innerWidth - 220)
+  const y = Math.min(at.y, window.innerHeight - 200)
+  return (
+    <div className="ctx-menu" ref={ref} role="menu" aria-label="Desktop" style={{ left: x, top: y }}>
+      <button type="button" role="menuitem" onClick={run(openWallpaperPicker)}>
+        Change wallpaper…
+      </button>
+      <button type="button" role="menuitem" onClick={run(() => setTheme(theme === 'dark' ? 'light' : 'dark'))}>
+        {theme === 'dark' ? 'Switch to day' : 'Switch to night'}
+      </button>
+      <button type="button" role="menuitem" onClick={run(openTerminal)}>
+        Open terminal
+      </button>
+    </div>
+  )
+}
+
 export default function Desktop() {
   const { windows, open, close, update, fitAll } = useWindows()
 
@@ -263,16 +314,28 @@ export default function Desktop() {
     registerOpener(
       (node: FsNode) => void open(specFor(node)),
       () => void open({ kind: 'terminal', title: 'Terminal' }),
+      (spec) => void open(spec),
     )
   }, [open])
 
   const top = topWindowId(windows)
   const about = getNode('/about.md')
+  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null)
+  const closeMenu = useCallback(() => setMenu(null), [])
 
   return (
     <div className="desktop">
       <Wallpaper />
-      <main className="workspace">
+      <main
+        className="workspace"
+        onContextMenu={(e) => {
+          // Only the empty desktop: windows and icons keep the browser's own menu.
+          const t = e.target as HTMLElement
+          if (t !== e.currentTarget && !t.classList.contains('desk-icons')) return
+          e.preventDefault()
+          setMenu({ x: e.clientX, y: e.clientY })
+        }}
+      >
         <h1 className="sr-only">Danish Ali, dev portfolio</h1>
         <ul className="desk-icons" aria-label="Desktop">
           {projects().map((p) => (
@@ -298,6 +361,9 @@ export default function Desktop() {
         ))}
       </main>
       <Taskbar windows={windows} />
+      {menu && <DesktopMenu at={menu} onClose={closeMenu} />}
+      <Screensaver />
+      <Boot />
     </div>
   )
 }

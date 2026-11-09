@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type WindowKind = 'terminal' | 'folder' | 'markdown' | 'text' | 'image' | 'video' | 'pdf' | 'app'
+export type WindowKind = 'terminal' | 'folder' | 'markdown' | 'text' | 'image' | 'video' | 'pdf' | 'app' | 'wallpaper'
 
 export interface Win {
   id: string
@@ -47,6 +47,7 @@ const DEFAULT_SIZE: Record<WindowKind, [number, number]> = {
   video: [760, 480],
   pdf: [720, 640],
   app: [1024, 680],
+  wallpaper: [620, 600],
 }
 
 let counter = 0
