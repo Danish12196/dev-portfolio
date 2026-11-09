@@ -18,12 +18,19 @@ function projectOf(path: string): DirNode | undefined {
   return dir?.type === 'dir' && dir.meta ? dir : undefined
 }
 
+/** A link file's button label: github.link reads "GitHub", itch.link "itch.io". */
+function linkLabel(l: FileNode) {
+  return l.name.replace(/\.link$/, '').replace(/^github$/i, 'GitHub').replace(/^itch$/i, 'itch.io')
+}
+
 function ProjectHeader({ dir }: { dir: DirNode }) {
   const meta = dir.meta!
   const app = findApp(dir)
   const links = dir.children.filter((c): c is FileNode => c.type === 'file' && c.kind === 'link')
   const live = app?.type === 'file' && app.url ? new URL(app.url).host : undefined
-  const game = Boolean(app?.type === 'file' && app.width)
+  // itch.io won't let its games be embedded here, so a game's main button sends you to its itch.io page.
+  const itch = !app ? links.find((l) => /^itch\.link$/i.test(l.name) && l.url) : undefined
+  const game = Boolean(itch && meta.jam)
   return (
     <header className="proj-head" style={{ ['--ic-color' as string]: meta.color }}>
       {meta.cover && <img className="proj-cover" src={meta.cover} alt={`${meta.name} cover art`} />}
@@ -40,19 +47,27 @@ function ProjectHeader({ dir }: { dir: DirNode }) {
         {meta.year && <span className="chip">{meta.year}</span>}
         {meta.stack?.length ? <span className="chip">{meta.stack.join(' · ')}</span> : null}
         {meta.jam && <span className="chip">{meta.jam}</span>}
-        {live && <span className="chip chip-live">{game ? '▶ plays in your browser' : `● live at ${live}`}</span>}
+        {live && <span className="chip chip-live">● live at {live}</span>}
+        {game && <span className="chip chip-live">▶ playable on itch.io</span>}
       </div>
       <div className="proj-actions">
         {app && (
           <button type="button" className="pill pill-dark" onClick={() => openNode(app)}>
-            {game ? 'Play' : 'Open'} {meta.name}
+            Open {meta.name}
           </button>
         )}
-        {links.map((l) => (
-          <a key={l.path} className="pill" href={l.url} target="_blank" rel="noreferrer">
-            {l.name.replace(/\.link$/, '').replace(/^github$/i, 'GitHub').replace(/^itch$/i, 'itch.io')} ↗
+        {itch && (
+          <a className="pill pill-dark" href={itch.url} target="_blank" rel="noreferrer">
+            {game ? `Play ${meta.name}` : 'itch.io'} ↗
           </a>
-        ))}
+        )}
+        {links
+          .filter((l) => l !== itch)
+          .map((l) => (
+            <a key={l.path} className="pill" href={l.url} target="_blank" rel="noreferrer">
+              {linkLabel(l)} ↗
+            </a>
+          ))}
       </div>
     </header>
   )

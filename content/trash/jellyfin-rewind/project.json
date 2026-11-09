@@ -1,0 +1,8 @@
+{
+  "name": "Jellyfin Rewind",
+  "tagline": "A year-in-review of what got watched on my Jellyfin server. Last touched December 2025",
+  "year": 2025,
+  "stack": ["TypeScript", "JavaScript"],
+  "status": "abandoned",
+  "color": "#C9C1B4"
+}

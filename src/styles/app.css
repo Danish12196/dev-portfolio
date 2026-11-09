@@ -198,6 +198,10 @@ button {
   font-size: calc(var(--s) * 0.32);
   border-radius: 50%;
 }
+.ic-now {
+  background: var(--btn-min);
+  font-size: calc(var(--s) * 0.26);
+}
 .ic-link {
   background: var(--paper);
   color: var(--ink);
@@ -208,6 +212,10 @@ button {
 }
 .ic-contact {
   background: var(--peach);
+}
+.ic-guestbook {
+  background: var(--btn-min);
+  color: var(--on-pastel);
 }
 .ic-term {
   width: var(--s);
@@ -255,6 +263,59 @@ button {
   border-radius: calc(var(--s) * 0.18);
   border: var(--stroke) solid var(--ink);
   background: var(--ic-color, var(--chip));
+}
+
+/* The trash can: a ribbed bin with its lid knocked askew by the paper inside. */
+.ic-trash {
+  width: calc(var(--s) * 0.86);
+  height: var(--s);
+}
+.ic-trash-body {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 24%;
+  bottom: 0;
+  border: var(--stroke) solid var(--ink);
+  border-radius: 3px 3px calc(var(--s) * 0.14) calc(var(--s) * 0.14);
+  background:
+    repeating-linear-gradient(90deg, transparent 0 calc(var(--s) * 0.13), var(--ink) calc(var(--s) * 0.13) calc(var(--s) * 0.13 + 1.5px), transparent calc(var(--s) * 0.13 + 1.5px) calc(var(--s) * 0.17)) center / 74% 64% no-repeat,
+    var(--chip);
+}
+.ic-trash-lid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 11%;
+  height: calc(var(--s) * 0.13);
+  border: var(--stroke) solid var(--ink);
+  border-radius: 4px;
+  background: var(--chip);
+  transform: rotate(-11deg);
+  transform-origin: 90% 100%;
+}
+.ic-trash-lid::before {
+  content: '';
+  position: absolute;
+  left: 34%;
+  width: 32%;
+  bottom: 100%;
+  height: calc(var(--s) * 0.08);
+  border: var(--stroke) solid var(--ink);
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+  background: var(--chip);
+}
+.ic-trash-paper {
+  position: absolute;
+  left: 22%;
+  top: 8%;
+  width: 44%;
+  height: 24%;
+  border: var(--stroke) solid var(--ink);
+  border-radius: 40% 55% 35% 50%;
+  background: var(--paper);
+  transform: rotate(14deg);
 }
 
 /* ---------- Desktop ---------- */
@@ -310,6 +371,72 @@ button {
 .desk-icon:focus-visible .desk-label {
   background: var(--ink);
   color: var(--paper);
+}
+/* the "working on" sticky note, top right of the desktop, under any windows */
+.now-note {
+  position: absolute;
+  top: 28px;
+  right: 28px;
+  width: 248px;
+  padding: 14px 16px 12px;
+  background: var(--now-note);
+  color: var(--on-pastel);
+  border: var(--stroke) solid var(--ink);
+  border-radius: 6px 6px 18px 6px;
+  box-shadow: var(--shadow-sm);
+  transform: rotate(1.2deg);
+}
+.now-note h2 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.now-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mint);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--mint) 70%, transparent);
+  animation: now-pulse 2.4s ease-out infinite;
+}
+@keyframes now-pulse {
+  70% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+.now-note ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 1.4;
+  display: grid;
+  gap: 5px;
+}
+.now-more {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--on-pastel) 70%, transparent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.now-more:hover {
+  color: var(--on-pastel);
+}
+@media (max-width: 760px), (max-height: 520px) {
+  .now-note {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .now-dot {
+    animation: none;
+  }
 }
 .desk-hint {
   position: absolute;
@@ -387,6 +514,9 @@ button {
 }
 .win-glyph-terminal {
   background: var(--term-bg);
+}
+.win-glyph-guestbook {
+  background: var(--btn-min);
 }
 .win-glyph-markdown,
 .win-glyph-text,
@@ -1123,7 +1253,7 @@ button {
   color: var(--ink);
   text-decoration: none;
 }
-.ph-grid span:last-child {
+.ph-grid button > span:last-child {
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1685,5 +1815,348 @@ a.seg,
   }
   .st-repo {
     display: none;
+/* ---------- CV & contact ---------- */
+.ic-cv {
+  position: relative;
+  width: calc(var(--s) * 0.82);
+  height: var(--s);
+  border-radius: calc(var(--s) * 0.18);
+  border: var(--stroke) solid var(--ink);
+  background: var(--paper);
+  box-shadow: var(--shadow-sm);
+}
+.ic-cv-face {
+  position: absolute;
+  top: 16%;
+  left: 18%;
+  width: 30%;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  border: var(--stroke) solid var(--ink);
+  background: var(--peach);
+}
+.ic-cv-lines {
+  position: absolute;
+  left: 18%;
+  right: 18%;
+  bottom: 18%;
+  height: 34%;
+  background: repeating-linear-gradient(var(--ink) 0 2px, transparent 2px 7px);
+  opacity: 0.55;
+}
+.win-glyph-cv {
+  width: 15px;
+  height: 19px;
+  background: var(--peach);
+}
+.cv-wrap {
+  padding: 26px 32px 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+.cv-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px 18px;
+  align-items: center;
+  max-width: 68ch;
+  width: 100%;
+  margin: 0 auto;
+}
+.cv-avatar {
+  width: 76px;
+  height: 76px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: var(--stroke) solid var(--ink);
+  background: var(--peach);
+  color: var(--on-pastel);
+  font-size: 26px;
+  font-weight: 800;
+  box-shadow: var(--shadow-sm);
+}
+.cv-who h1 {
+  margin: 0;
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1;
+}
+.cv-who p {
+  margin: 6px 0 10px;
+  color: var(--muted-2);
+  font-size: 16px;
+}
+.cv-clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.cv-gap {
+  color: var(--muted);
+  font-weight: 600;
+}
+.cv-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mint);
+  border: 1px solid var(--ink);
+}
+.cv-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.cv-sheet-bar {
+  max-width: 68ch;
+  width: 100%;
+  margin: 6px auto -10px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.cv-file {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--muted);
+}
+.cv-sheet {
+  width: 100%;
+  padding: 34px 40px 30px;
+  background: var(--paper);
+  border: var(--stroke) solid var(--ink);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  font-size: 15px;
+}
+.cv-sheet h1 {
+  font-size: 30px;
+}
+.cv-sheet h2 {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--accent);
+  padding-bottom: 6px;
+  border-bottom: var(--stroke) dashed var(--chip-line);
+}
+.cv-sheet ul {
+  padding-left: 1.2em;
+}
+.cv-sheet li + li {
+  margin-top: 6px;
+}
+.cv-print {
+  display: none;
+}
+@media (max-width: 720px) {
+  .cv-wrap {
+    padding: 18px 16px 32px;
+  }
+  .cv-avatar {
+    width: 60px;
+    height: 60px;
+    font-size: 21px;
+  }
+  .cv-who h1 {
+    font-size: 28px;
+  }
+  .cv-sheet {
+    padding: 22px 18px;
+  }
+}
+@media print {
+  html,
+  body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+  }
+  #root {
+    display: none !important;
+  }
+  .cv-print {
+    display: block;
+    max-width: none;
+    margin: 0;
+    color: #000;
+    font-size: 11pt;
+    line-height: 1.45;
+  }
+  .cv-print h1 {
+    font-size: 24pt;
+    margin: 0 0 4pt;
+  }
+  .cv-print-contact {
+    margin: 0 0 12pt;
+    font-size: 9.5pt;
+    color: #444;
+  }
+  .cv-print h2 {
+    font-family: var(--font-mono);
+    font-size: 9pt;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #000;
+    border-bottom: 1px solid #999;
+    padding-bottom: 3pt;
+    margin: 14pt 0 6pt;
+  }
+  .cv-print a {
+    color: #000;
+  }
+  @page {
+    margin: 16mm;
+  }
+}
+.cv-sheet > :first-child {
+  margin-top: 0;
+}
+/* ---------- Guestbook ---------- */
+.gb {
+  height: 100%;
+  overflow: auto;
+  padding: 22px 24px 28px;
+  display: grid;
+  gap: 26px;
+  align-content: start;
+  background: var(--paper);
+  color: var(--ink);
+}
+.gb h2 {
+  margin: 0 0 4px;
+  font-size: 18px;
+  font-weight: 800;
+}
+.gb-sub {
+  margin: 0 0 14px;
+  color: var(--muted);
+  font-size: 14px;
+}
+.gb-form {
+  display: grid;
+  gap: 12px;
+}
+.gb-form label {
+  position: relative;
+  display: grid;
+  gap: 5px;
+  font-size: 13px;
+  font-weight: 700;
+}
+.gb-form input,
+.gb-form textarea {
+  font: inherit;
+  font-weight: 400;
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--chip);
+  border: var(--stroke) solid var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 9px 12px;
+}
+.gb-form textarea {
+  resize: vertical;
+  min-height: 96px;
+  padding-bottom: 22px;
+}
+.gb-form input:focus-visible,
+.gb-form textarea:focus-visible {
+  outline: 3px solid var(--peach);
+  outline-offset: 1px;
+}
+.gb-count {
+  position: absolute;
+  right: 10px;
+  bottom: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.gb-hp {
+  position: absolute !important;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+.gb-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.gb-row .pill:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+.gb-error {
+  margin: 0;
+  color: var(--rust);
+  font-size: 13px;
+  font-weight: 700;
+}
+.gb-thanks {
+  display: grid;
+  gap: 12px;
+  justify-items: start;
+  padding: 14px 16px;
+  background: var(--mint-soft);
+  border: var(--stroke) solid var(--ink);
+  border-radius: var(--radius);
+  font-size: 14px;
+}
+.gb-notes ul {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 16px;
+}
+.gb-note {
+  padding: 14px 14px 10px;
+  background: var(--peach-soft);
+  border: var(--stroke) solid var(--ink);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-sm);
+  transform: rotate(var(--tilt, 0deg));
+}
+.gb-note:nth-child(3n + 2) {
+  background: var(--mint-soft);
+}
+.gb-note p {
+  margin: 0 0 10px;
+  font-size: 14px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.gb-note footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.gb-note time {
+  color: var(--muted);
+  font-weight: 600;
+}
+.gb-empty {
+  color: var(--muted);
+  font-size: 14px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gb-note {
+    transform: none;
   }
 }

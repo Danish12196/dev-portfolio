@@ -37,3 +37,9 @@ export const STATS: OpenSpec = { kind: 'stats', title: 'Stats' }
 export function openStats() {
   specOpener(STATS)
 }
+
+export const GUESTBOOK: OpenSpec = { kind: 'guestbook', title: 'Guestbook' }
+
+export function openGuestbook() {
+  specOpener(GUESTBOOK)
+}

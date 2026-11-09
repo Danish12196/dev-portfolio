@@ -1,7 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-export type WindowKind = 'terminal' | 'folder' | 'markdown' | 'text' | 'image' | 'video' | 'pdf' | 'app' | 'stats'
+export type WindowKind = 'terminal' | 'folder' | 'markdown' | 'text' | 'image' | 'video' | 'pdf' | 'app' | 'cv' | 'guestbook' | 'stats'
 
 export interface Win {
   id: string
@@ -48,6 +48,8 @@ const DEFAULT_SIZE: Record<WindowKind, [number, number]> = {
   pdf: [720, 640],
   app: [1024, 680],
   stats: [660, 620],
+  cv: [780, 680],
+  guestbook: [600, 640],
 }
 
 let counter = 0
@@ -93,7 +95,7 @@ export const useWindows = create<WindowState>()(
         const { windows, topZ } = get()
         // One window per thing: reopening focuses the existing window.
         const existing = windows.find(
-          (w) => w.kind === spec.kind && (spec.kind === 'terminal' || (w.path ?? w.url) === (spec.path ?? spec.url)),
+          (w) => w.kind === spec.kind && (spec.kind === 'terminal' || spec.kind === 'guestbook' || (w.path ?? w.url) === (spec.path ?? spec.url)),
         )
         if (existing) {
           set({
