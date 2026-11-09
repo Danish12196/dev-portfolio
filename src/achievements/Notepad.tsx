@@ -174,7 +174,6 @@ export function Star({ id, className = '', style }: { id: 'star-sky' | 'star-men
       className={`star${pop ? ' star-pop' : ''} ${className}`}
       style={style}
       aria-label="A small star"
-      tabIndex={-1}
       onClick={(e) => {
         e.stopPropagation()
         setPop(true)

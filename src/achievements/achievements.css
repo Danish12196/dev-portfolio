@@ -263,8 +263,10 @@
   opacity: 0.55;
   animation: twinkle 3.4s ease-in-out infinite;
 }
-.star:hover {
+.star:hover,
+.star:focus-visible {
   opacity: 1;
+  animation-play-state: paused;
 }
 .star-pop {
   animation: star-pop 700ms ease-out forwards;
@@ -612,4 +614,12 @@
 /* The start menu now has five buttons; let them wrap instead of spilling out. */
 .sm-actions {
   flex-wrap: wrap;
+}
+.ph-dock {
+  position: relative;
+}
+.star-dock {
+  top: 4px;
+  right: 10px;
+  color: var(--muted);
 }

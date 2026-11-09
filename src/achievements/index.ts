@@ -31,7 +31,7 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'header', title: 'Read the headers', hint: 'The server sends a little extra with every page.', done: 'Found the x-achievement header.' },
   { id: 'dns', title: 'Dug deep', hint: 'Domains can keep text records too. Dig around.', done: 'Found the DNS TXT record.' },
   { id: 'star-sky', title: 'Wishing star', hint: 'A star is hiding somewhere on the desktop.', done: 'Caught the star on the desktop.' },
-  { id: 'star-menu', title: 'Pocket star', hint: 'A star is tucked inside a menu.', done: 'Found the star in the start menu.' },
+  { id: 'star-menu', title: 'Pocket star', hint: 'A star is tucked inside a menu (on a phone, the dock).', done: 'Found the pocket star.' },
   { id: 'star-term', title: 'Terminal star', hint: 'A star is printed in some system info.', done: 'Found the star in neofetch.' },
 ]
 
@@ -189,6 +189,7 @@ export function resetAchievements() {
   lastTick = performance.now()
   useAchievements.setState({ ...next, latest: null })
   save(next)
+  readPaths = []
   try {
     localStorage.removeItem(READ_KEY)
   } catch {
@@ -235,15 +236,21 @@ export function runSeed(salt: string) {
 
 export const READ_KEY = 'devportfolio.readmes'
 
+// Kept in memory too, so it still works when storage is blocked.
+let readPaths: string[] | null = null
+
 export function markRead(path: string) {
   if (!/readme\.md$/i.test(path) && !path.endsWith('/about.md')) return
-  let seen: string[] = []
-  try {
-    seen = JSON.parse(localStorage.getItem(READ_KEY) ?? '[]')
-  } catch {
-    /* ignore */
+  if (!readPaths) {
+    try {
+      const saved = JSON.parse(localStorage.getItem(READ_KEY) ?? '[]')
+      readPaths = Array.isArray(saved) ? saved.filter((p) => typeof p === 'string') : []
+    } catch {
+      readPaths = []
+    }
   }
-  if (!seen.includes(path)) seen = [...seen, path]
+  if (!readPaths.includes(path)) readPaths = [...readPaths, path]
+  const seen = readPaths
   try {
     localStorage.setItem(READ_KEY, JSON.stringify(seen))
   } catch {

@@ -7,6 +7,7 @@ import { GUESTBOOK, registerOpener } from '../shell/opener'
 import Wallpaper from '../desktop/Wallpaper'
 import type { OpenSpec } from '../store/windows'
 import { SkyStar } from '../achievements/SkyStar'
+import { Star } from '../achievements/Notepad'
 
 function StatusBar() {
   const [now, setNow] = useState(() => new Date())
@@ -168,6 +169,7 @@ export default function Phone() {
             )}
           </ul>
           <nav className="ph-dock" aria-label="Dock">
+            <Star id="star-menu" className="star-dock" />
             <button type="button" onClick={() => open({ kind: 'terminal', title: 'Terminal' })}>
               <Icon node="terminal" size="lg" />
               <span>Terminal</span>
