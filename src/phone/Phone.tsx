@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { findProject, findReadme, getNode, projects } from '../fs'
+import { findProject, findReadme, getNode, projects, TRASH_DIR } from '../fs'
 import type { FsNode } from '../fs/types'
 import Icon from '../apps/Icon'
 import { specFor, WindowContent } from '../apps/registry'
@@ -60,6 +60,7 @@ export default function Phone() {
   const now = getNode('/now.md')
   const cv = getNode('/cv.md')
   const files = getNode('/projects')
+  const trash = getNode(TRASH_DIR)
   const open = (spec: OpenSpec) => setStack((s) => [...s, spec])
 
   return (
@@ -151,6 +152,14 @@ export default function Phone() {
                 <span>Guestbook</span>
               </button>
             </li>
+            {trash && (
+              <li>
+                <button type="button" onClick={() => open(specFor(trash))}>
+                  <Icon node={trash} size="xl" />
+                  <span>Trash</span>
+                </button>
+              </li>
+            )}
           </ul>
           <nav className="ph-dock" aria-label="Dock">
             <button type="button" onClick={() => open({ kind: 'terminal', title: 'Terminal' })}>

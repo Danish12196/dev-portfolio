@@ -80,6 +80,13 @@ from the iframe on the itch.io page). `project.json` can also have
 `"cover": "media/01-cover.jpg"` to put the cover art on top of the README, and
 `"jam"` for the game jam it was made for. `itch.link` becomes an itch.io button.
 
+### Trash
+
+`content/trash/` holds abandoned projects, one folder each with a `project.json`
+and a `README.md`, in the same format as above. They open from the trash can on
+the desktop (and on the phone home screen), and stay out of the start menu,
+search and `projects`.
+
 Anything else in the folder shows up too: `.md` files render as documents,
 images and video get viewers, PDFs open in a PDF window, and any other file
 opens as plain text. `content/about.md` is the About page and the output of

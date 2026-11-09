@@ -1,4 +1,5 @@
 import type { CSSProperties } from 'react'
+import { TRASH_DIR } from '../fs'
 import type { FsNode } from '../fs/types'
 
 type IconNode = FsNode | 'terminal' | 'about' | 'cv' | 'guestbook'
@@ -29,6 +30,14 @@ export default function Icon({ node, size = 'md', color }: { node: IconNode; siz
     return (
       <span className={`${cls} ic-tile ic-about`} aria-hidden="true">
         da
+      </span>
+    )
+  if (node.type === 'dir' && node.path === TRASH_DIR)
+    return (
+      <span className={`${cls} ic-trash`} aria-hidden="true">
+        <span className="ic-trash-paper" />
+        <span className="ic-trash-lid" />
+        <span className="ic-trash-body" />
       </span>
     )
   if (node.type === 'dir') {
