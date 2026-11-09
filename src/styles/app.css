@@ -993,6 +993,15 @@ button {
   background: var(--paper);
   border-top: var(--stroke) solid var(--ink);
 }
+.imgview-full {
+  margin-left: 4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--chip);
+  color: var(--ink);
+  font-weight: 700;
+  text-decoration: none;
+}
 .imgview-bar button {
   width: 30px;
   height: 30px;
@@ -1157,7 +1166,11 @@ button {
   font-size: 14px;
   font-weight: 800;
 }
-.ph-app-bar span {
+.ph-app-bar span,
+.ph-app-title {
+  margin: 0;
+  font: inherit;
+  min-width: 0;
   text-align: center;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1191,6 +1204,7 @@ button {
 
 /* ---------- Terminal ---------- */
 .term {
+  position: relative;
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -1200,6 +1214,8 @@ button {
   font-size: 13px;
   font-weight: 400;
   line-height: 1.55;
+  /* ASCII art (cowsay, neofetch) needs every character on its own. */
+  font-variant-ligatures: none;
 }
 .term-scroll {
   flex: 1;
@@ -1270,3 +1286,127 @@ a.seg,
   color: var(--term-fg);
 }
 
+
+/* ---------- Accessibility and polish ---------- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+/* A focused window gets a ring inside its border, so it is never clipped. */
+.win:focus-visible {
+  outline-offset: -5px;
+}
+/* The round title-bar buttons stay small but get a 32px hit area. */
+.win-buttons button {
+  position: relative;
+}
+.win-buttons button::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+}
+/* The phone app bar already has a back button, so the folder's own one is a duplicate. */
+.phone .folder-bar > .round-btn {
+  display: none;
+}
+/* Line the Files folder up with the square dock tiles next to it. */
+.ph-dock .ic-folder {
+  margin-top: calc(var(--s) * 0.08);
+}
+.imgview img {
+  height: auto;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .win-buttons button:hover {
+    transform: none;
+  }
+}
+
+.ph-app-title:focus,
+.ph-hello h1:focus {
+  outline: none;
+}
+
+/* ---------- Terminal skins (easter egg: `skin`). Green stays the default. ---------- */
+.term.skin-amber {
+  --term-fg: #ffb000;
+  --term-dim: #a86f00;
+  --term-accent: #ffd27a;
+  --term-dir: #ffc845;
+  --term-line: #2a1f08;
+  --term-bg: #0f0b05;
+}
+.term.skin-ice {
+  --term-fg: #6ad8ff;
+  --term-dim: #3b8bb0;
+  --term-accent: #c8f1ff;
+  --term-dir: #9be6ff;
+  --term-line: #12232c;
+  --term-bg: #060d12;
+}
+.term.skin-mono {
+  --term-fg: #e8e8e8;
+  --term-dim: #8a8a8a;
+  --term-accent: #ffffff;
+  --term-dir: #cfcfcf;
+  --term-line: #262626;
+  --term-bg: #0b0b0b;
+}
+.term.skin-rainbow .term-scroll {
+  animation: term-rainbow 6s linear infinite;
+}
+@keyframes term-rainbow {
+  to {
+    filter: hue-rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .term.skin-rainbow .term-scroll {
+    animation: none;
+    filter: hue-rotate(200deg);
+  }
+}
+
+/* Full-screen terminal programs: snake, matrix */
+.term-program {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--term-bg);
+  outline: none;
+  touch-action: none;
+}
+.term-program canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.term-program-quit {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  color: var(--term-dim);
+  font-size: 18px;
+  line-height: 1;
+}
+.term-program-quit:hover,
+.term-program-quit:focus-visible {
+  color: var(--term-accent);
+}

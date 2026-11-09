@@ -1,35 +1,25 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
-import { create } from 'zustand'
+import { lazy, Suspense, useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { displayPath, getNode } from '../fs'
 import { openNode } from '../shell/opener'
 import { complete, execute, WELCOME, type Line, type Seg } from '../terminal/commands'
+import { findEgg } from '../terminal/found'
+import { txt } from '../terminal/lines'
+import { useTerm } from '../terminal/store'
 
-interface TermState {
-  lines: Line[]
-  cwd: string
-  history: string[]
-  push: (...l: Line[]) => void
-  clear: () => void
-  setCwd: (p: string) => void
-  addHistory: (cmd: string) => void
-}
 
-// Lives outside the window so closing and reopening the terminal keeps its scrollback.
-export const useTerm = create<TermState>()((set) => ({
-  lines: WELCOME,
-  cwd: '/',
-  history: [],
-  push: (...l) => set((s) => ({ lines: [...s.lines, ...l].slice(-500) })),
-  clear: () => set({ lines: [] }),
-  setCwd: (cwd) => set({ cwd }),
-  addHistory: (cmd) => set((s) => ({ history: [...s.history, cmd].slice(-100) })),
-}))
+const Snake = lazy(() => import('../terminal/Snake'))
+const Matrix = lazy(() => import('../terminal/Matrix'))
 
-const SHORTCUTS = ['help', 'projects', 'ls', 'cd ..', 'open fuloos', 'play jeopardy', 'exit']
+useTerm.setState({ lines: WELCOME })
+
+const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a']
+
+const SHORTCUTS = ['help', 'projects', 'ls', 'cd ..', 'open fuloos', 'play jeopardy', 'games', 'neofetch', 'snake', 'exit']
 
 export default function Terminal({ onExit, showShortcuts = false }: { onExit: () => void; showShortcuts?: boolean }) {
-  const { lines, cwd, history, push, clear, setCwd, addHistory } = useTerm()
+  const { lines, cwd, history, handler, program, skin, push, clear, setCwd, addHistory, capture, launch } = useTerm()
   const [input, setInput] = useState('')
+  const konami = useRef(0)
   const [hIndex, setHIndex] = useState<number | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const endRef = useRef<HTMLDivElement>(null)
@@ -46,6 +36,13 @@ export default function Terminal({ onExit, showShortcuts = false }: { onExit: ()
   ]
 
   function run(cmd: string) {
+    const h = useTerm.getState().handler
+    if (h) {
+      push([{ t: h.prompt, cls: 'dim' }, { t: h.secret ? '' : cmd }])
+      setInput('')
+      h.onInput(cmd.trim())
+      return
+    }
     const trimmed = cmd.trim()
     push([...prompt(useTerm.getState().cwd), { t: trimmed }])
     if (trimmed) addHistory(trimmed)
@@ -61,8 +58,30 @@ export default function Terminal({ onExit, showShortcuts = false }: { onExit: ()
     inputRef.current?.focus()
   }
 
+  function onKonami(key: string) {
+    const want = KONAMI[konami.current]
+    konami.current = key.toLowerCase() === want.toLowerCase() ? konami.current + 1 : key === KONAMI[0] ? 1 : 0
+    if (konami.current < KONAMI.length) return false
+    konami.current = 0
+    setInput('')
+    useTerm.getState().setSkin('rainbow')
+    push([txt('↑↑↓↓←→←→BA  +30 lives. Rainbow skin unlocked: ', 'bold'), { t: 'skin', cls: 'accent', run: 'skin' }])
+    findEgg('konami')
+    return true
+  }
+
   function onKey(e: KeyboardEvent<HTMLInputElement>) {
+    if (onKonami(e.key)) return e.preventDefault()
     if (e.key === 'Enter') return run(input)
+    if (e.key === 'c' && e.ctrlKey && !window.getSelection()?.toString()) {
+      e.preventDefault()
+      const h = useTerm.getState().handler
+      if (h?.trap) return push([txt(h.trap, 'dim')])
+      push([...(h ? [{ t: h.prompt, cls: 'dim' as const }] : prompt(cwd)), { t: input + '^C' }])
+      setInput('')
+      return capture(null)
+    }
+    if (handler && (e.key === 'ArrowUp' || e.key === 'ArrowDown' || e.key === 'Tab')) return e.preventDefault()
     if (e.key === 'Tab') {
       e.preventDefault()
       return setInput(complete(input, cwd))
@@ -98,8 +117,14 @@ export default function Terminal({ onExit, showShortcuts = false }: { onExit: ()
     }
   }
 
+  function quitProgram(...l: Line[]) {
+    launch(null)
+    if (l.length) push(...l)
+    setTimeout(() => inputRef.current?.focus())
+  }
+
   return (
-    <div className="term" onClick={(e) => (e.target as HTMLElement).closest('button, a') || inputRef.current?.focus()}>
+    <div className={`term skin-${skin}`} onClick={(e) => (e.target as HTMLElement).closest('button, a, .term-program') || inputRef.current?.focus()}>
       <div className="term-scroll" role="log" aria-live="polite">
         {lines.map((line, i) => (
           <div className="term-line" key={i}>
@@ -113,7 +138,7 @@ export default function Terminal({ onExit, showShortcuts = false }: { onExit: ()
                   {s.t}
                 </button>
               ) : (
-                <span key={j} className={`seg ${s.cls ?? ''}`}>
+                <span key={j} className={`seg ${s.cls ?? ''}`} style={s.color ? { color: s.color } : undefined}>
                   {s.t}
                 </span>
               ),
@@ -121,7 +146,7 @@ export default function Terminal({ onExit, showShortcuts = false }: { onExit: ()
           </div>
         ))}
         <div className="term-line term-input-line" ref={endRef}>
-          {prompt(cwd).map((s, j) => (
+          {(handler ? [{ t: handler.prompt, cls: 'dim' as const }] : prompt(cwd)).map((s, j) => (
             <span key={j} className={`seg ${s.cls ?? ''}`}>
               {s.t}
             </span>
@@ -130,6 +155,7 @@ export default function Terminal({ onExit, showShortcuts = false }: { onExit: ()
             ref={inputRef}
             className="term-input"
             value={input}
+            type={handler?.secret ? 'password' : 'text'}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={onKey}
             autoFocus
@@ -140,7 +166,12 @@ export default function Terminal({ onExit, showShortcuts = false }: { onExit: ()
           />
         </div>
       </div>
-      {showShortcuts && (
+      {program && (
+        <Suspense fallback={null}>
+          {program === 'snake' ? <Snake onQuit={quitProgram} /> : <Matrix onQuit={quitProgram} />}
+        </Suspense>
+      )}
+      {showShortcuts && !program && (
         <div className="term-shortcuts">
           {SHORTCUTS.map((s) => (
             <button key={s} type="button" onClick={() => run(s)}>

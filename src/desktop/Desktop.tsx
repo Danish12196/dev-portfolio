@@ -28,11 +28,31 @@ function Clock() {
 function StartMenu({ onClose }: { onClose: () => void }) {
   const ref = useRef<HTMLDivElement>(null)
   const about = getNode('/about.md')
+  // Move focus into the menu, and give it back to the start button when it closes.
+  useEffect(() => {
+    const opener = document.activeElement as HTMLElement | null
+    const menu = ref.current
+    menu?.querySelector<HTMLElement>('button, a')?.focus()
+    return () => {
+      const now = document.activeElement
+      if (!now || now === document.body || menu?.contains(now)) opener?.focus()
+    }
+  }, [])
   useEffect(() => {
     const onDown = (e: PointerEvent) => {
       if (!ref.current?.contains(e.target as Node) && !(e.target as HTMLElement).closest('.tb-start')) onClose()
     }
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose()
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') return onClose()
+      // Up/down arrows walk the menu like a native one.
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return
+      const items = [...(ref.current?.querySelectorAll<HTMLElement>('button, a') ?? [])]
+      const at = items.indexOf(document.activeElement as HTMLElement)
+      if (at === -1 && !ref.current?.contains(document.activeElement)) return
+      e.preventDefault()
+      const next = e.key === 'ArrowDown' ? (at + 1) % items.length : (at - 1 + items.length) % items.length
+      items[next]?.focus()
+    }
     window.addEventListener('pointerdown', onDown)
     window.addEventListener('keydown', onKey)
     return () => {
@@ -45,9 +65,11 @@ function StartMenu({ onClose }: { onClose: () => void }) {
     onClose()
   }
   return (
-    <div className="start-menu" ref={ref} role="dialog" aria-label="Start menu">
+    <div className="start-menu" id="start-menu" ref={ref} role="dialog" aria-label="Start menu">
       <div className="sm-profile">
-        <span className="sm-avatar">da</span>
+        <span className="sm-avatar" aria-hidden="true">
+          da
+        </span>
         <div>
           <div className="sm-name">Danish Ali</div>
           <div className="sm-sub">Apps, games and the odd homelab tool</div>
@@ -94,23 +116,47 @@ function Search() {
     setQ('')
   }
   return (
-    <div className="tb-search-wrap">
+    <div className="tb-search-wrap" role="search">
       <label className="tb-search" htmlFor="tb-search">
         <span aria-hidden="true">⌕</span>
         <input
           id="tb-search"
+          type="search"
           placeholder="Search projects"
+          aria-label="Search projects"
+          aria-controls={q.trim() ? 'tb-results' : undefined}
           value={q}
           onChange={(e) => setQ(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === 'Enter' && hits[0]) open(hits[0])
             if (e.key === 'Escape') setQ('')
+            if (e.key === 'ArrowDown') {
+              e.preventDefault()
+              document.querySelector<HTMLElement>('#tb-results button')?.focus()
+            }
           }}
           autoComplete="off"
         />
       </label>
       {q.trim() && (
-        <ul className="tb-results">
+        <ul
+          className="tb-results"
+          id="tb-results"
+          aria-label="Matching projects"
+          onKeyDown={(e) => {
+            const items = [...e.currentTarget.querySelectorAll<HTMLElement>('button')]
+            const at = items.indexOf(document.activeElement as HTMLElement)
+            if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+              e.preventDefault()
+              const next = at + (e.key === 'ArrowDown' ? 1 : -1)
+              ;(next < 0 ? document.getElementById('tb-search') : items[Math.min(next, items.length - 1)])?.focus()
+            }
+            if (e.key === 'Escape') {
+              setQ('')
+              document.getElementById('tb-search')?.focus()
+            }
+          }}
+        >
           {hits.length === 0 && <li className="tb-none">No projects match “{q.trim()}”</li>}
           {hits.map((p) => (
             <li key={p.path}>
@@ -136,13 +182,22 @@ function Taskbar({ windows }: { windows: Win[] }) {
     <>
       {start && <StartMenu onClose={() => setStart(false)} />}
       <nav className="taskbar" aria-label="Taskbar">
-        <button type="button" className="tb-start" aria-expanded={start} onClick={() => setStart(!start)}>
-          <span className="sm-avatar sm-avatar-sm">da</span>
+        <button
+          type="button"
+          className="tb-start"
+          aria-expanded={start}
+          aria-haspopup="dialog"
+          aria-controls={start ? 'start-menu' : undefined}
+          onClick={() => setStart(!start)}
+        >
+          <span className="sm-avatar sm-avatar-sm" aria-hidden="true">
+            da
+          </span>
           dev/portfolio
         </button>
         <Search />
-        <span className="tb-sep" />
-        <div className="tb-windows">
+        <span className="tb-sep" aria-hidden="true" />
+        <div className="tb-windows" role="group" aria-label="Open windows">
           {windows.map((w) => (
             <button
               key={w.id}
@@ -150,6 +205,8 @@ function Taskbar({ windows }: { windows: Win[] }) {
               className={`tb-win${w.minimized ? ' min' : ''}${w.id === top ? ' on' : ''}`}
               onClick={() => (w.id === top && !w.minimized ? minimize(w.id) : focus(w.id))}
               title={w.minimized ? `${w.title} (minimised)` : w.title}
+              aria-pressed={w.id === top && !w.minimized}
+              aria-label={w.minimized ? `${w.title}, minimised` : w.title}
               style={{ ['--ic-color' as string]: w.color }}
             >
               <span className={`win-glyph win-glyph-${w.kind}`} aria-hidden="true" />
@@ -174,7 +231,18 @@ function Taskbar({ windows }: { windows: Win[] }) {
 function DeskIcon({ node, label, onOpen, color }: { node: FsNode | 'terminal'; label: string; onOpen: () => void; color?: string }) {
   return (
     <li>
-      <button type="button" className="desk-icon" onDoubleClick={onOpen} onKeyDown={(e) => e.key === 'Enter' && onOpen()}>
+      <button
+        type="button"
+        className="desk-icon"
+        onDoubleClick={onOpen}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            onOpen()
+          }
+        }}
+        onClick={(e) => (e.nativeEvent as PointerEvent).pointerType === 'touch' && onOpen()}
+      >
         <Icon node={node} size="lg" color={color} />
         <span className="desk-label">{label}</span>
       </button>
@@ -183,7 +251,13 @@ function DeskIcon({ node, label, onOpen, color }: { node: FsNode | 'terminal'; l
 }
 
 export default function Desktop() {
-  const { windows, open, close, update } = useWindows()
+  const { windows, open, close, update, fitAll } = useWindows()
+
+  useEffect(() => {
+    fitAll()
+    window.addEventListener('resize', fitAll)
+    return () => window.removeEventListener('resize', fitAll)
+  }, [fitAll])
 
   useEffect(() => {
     registerOpener(
@@ -199,6 +273,7 @@ export default function Desktop() {
     <div className="desktop">
       <Wallpaper />
       <main className="workspace">
+        <h1 className="sr-only">Danish Ali, dev portfolio</h1>
         <ul className="desk-icons" aria-label="Desktop">
           {projects().map((p) => (
             <DeskIcon key={p.path} node={p} label={p.name} onOpen={() => openNode(p)} />
@@ -206,7 +281,7 @@ export default function Desktop() {
           <DeskIcon node="terminal" label="terminal" onOpen={openTerminal} />
           {about && <DeskIcon node={about} label="about me" onOpen={() => openNode(about)} />}
         </ul>
-        {windows.length === 0 && <p className="desk-hint">Double-click a folder to open it, or press dev/portfolio for the start menu.</p>}
+        {windows.length === 0 && <p className="desk-hint">Double-click a folder (or select it and press Enter) to open it. The dev/portfolio button opens the start menu.</p>}
         {windows.map((w) => (
           <Window key={w.id} win={w} active={w.id === top}>
             <WindowContent

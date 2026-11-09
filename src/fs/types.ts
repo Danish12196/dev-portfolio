@@ -29,7 +29,10 @@ export interface FileNode {
   title?: string
   /** still shown before a video plays */
   poster?: string
-  /** for apps: the size the window should open at (the game's own size) */
+  /** images: the original file when src is a smaller copy */
+  full?: string
+  /** images: pixel size of src, so the viewer can reserve space;
+   *  apps: the size the window should open at (the game's own size) */
   width?: number
   height?: number
 }
