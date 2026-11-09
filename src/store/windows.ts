@@ -34,6 +34,8 @@ interface WindowState {
   toggleMaximize: (id: string) => void
   setBounds: (id: string, b: Partial<Pick<Win, 'x' | 'y' | 'w' | 'h'>>) => void
   update: (id: string, patch: Partial<Win>) => void
+  /** Keep every window reachable after the viewport changes size. */
+  fitAll: () => void
 }
 
 const DEFAULT_SIZE: Record<WindowKind, [number, number]> = {
@@ -49,17 +51,35 @@ const DEFAULT_SIZE: Record<WindowKind, [number, number]> = {
 
 let counter = 0
 
-function place(w: number, h: number, offset: number) {
+const TASKBAR = 54
+const STEP = 32
+
+/** Centred, or cascaded down and right from the window on top so its title bar stays visible. */
+function place(w: number, h: number, below?: Win) {
   const vw = window.innerWidth
-  const vh = window.innerHeight - 54 // taskbar
+  const vh = window.innerHeight - TASKBAR
   const width = Math.min(w, vw - 24)
   const height = Math.min(h, vh - 24)
-  return {
-    w: width,
-    h: height,
-    x: Math.max(12, Math.round((vw - width) / 2) + offset),
-    y: Math.max(12, Math.round((vh - height) / 2) + offset),
+  const centred = { x: Math.max(12, Math.round((vw - width) / 2)), y: Math.max(12, Math.round((vh - height) / 2)) }
+  if (below) {
+    const x = below.x + STEP
+    const y = below.y + STEP
+    if (x + width <= vw - 12 && y + height <= vh - 12) return { w: width, h: height, x, y }
+    // No room to cascade: start again from the top left corner of the free area.
+    if (Math.abs(centred.x - below.x) < STEP && Math.abs(centred.y - below.y) < STEP) return { w: width, h: height, x: Math.max(12, Math.min(12 + STEP, vw - width - 12)), y: 12 }
   }
+  return { w: width, h: height, ...centred }
+}
+
+/** Pull a window back on screen after the browser window shrinks. */
+function fit(win: Win): Win {
+  const vw = window.innerWidth
+  const vh = window.innerHeight - TASKBAR
+  const w = Math.min(win.w, Math.max(320, vw - 24))
+  const h = Math.min(win.h, Math.max(200, vh - 24))
+  const x = Math.min(Math.max(win.x, -w + 80), vw - 80)
+  const y = Math.min(Math.max(win.y, 0), vh - 60)
+  return x === win.x && y === win.y && w === win.w && h === win.h ? win : { ...win, x, y, w, h }
 }
 
 export const useWindows = create<WindowState>()(
@@ -82,14 +102,14 @@ export const useWindows = create<WindowState>()(
           return existing.id
         }
         const [dw, dh] = DEFAULT_SIZE[spec.kind]
-        const offset = (windows.filter((w) => !w.minimized).length % 6) * 28
+        const below = windows.find((w) => w.id === topWindowId(windows))
         const id = `w${Date.now().toString(36)}${counter++}`
         const win: Win = {
           id,
           minimized: false,
           maximized: false,
           z: topZ + 1,
-          ...place(spec.w ?? dw, spec.h ?? dh, offset),
+          ...place(spec.w ?? dw, spec.h ?? dh, below),
           ...spec,
         }
         set({ topZ: topZ + 1, windows: [...windows, win] })
@@ -113,6 +133,12 @@ export const useWindows = create<WindowState>()(
       setBounds: (id, b) => set({ windows: get().windows.map((w) => (w.id === id ? { ...w, ...b } : w)) }),
 
       update: (id, patch) => set({ windows: get().windows.map((w) => (w.id === id ? { ...w, ...patch } : w)) }),
+
+      fitAll: () => {
+        const windows = get().windows
+        const next = windows.map(fit)
+        if (next.some((w, i) => w !== windows[i])) set({ windows: next })
+      },
     }),
     { name: 'devportfolio.windows', version: 1 },
   ),

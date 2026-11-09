@@ -25,6 +25,11 @@ export interface FileNode {
   title?: string
   /** still shown before a video plays */
   poster?: string
+  /** images: the original file when src is a smaller copy */
+  full?: string
+  /** images: pixel size of src, so the viewer can reserve space */
+  width?: number
+  height?: number
 }
 
 export interface DirNode {
