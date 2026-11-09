@@ -2,11 +2,13 @@ import { displayPath, findApp, findProject, getNode, projects, resolvePath, root
 import type { DirNode, FsNode } from '../fs/types'
 import { ago, duration, level, loadStats, loadVisits, weeks } from '../apps/stats'
 import { formatUpdated, NOW_PATH, readNow } from '../apps/now'
-import { openGuestbook, openNode, openStats } from '../shell/opener'
+import { openGuestbook, openNode, openStats, openUpdates, openWallpaperPicker, SOURCE_URL } from '../shell/opener'
 import { setTheme } from '../shell/theme'
 import { contact, CV_PATH, localTime } from '../shell/contact'
+import { startScreensaver } from '../shell/screensaver'
+import { findWallpaper, getWallpaper, setWallpaper, WALLPAPERS } from '../shell/wallpaper'
 import { EGG_COMMANDS, HIDDEN_FILES } from './eggs'
-import { findEgg } from './found'
+import { unlock } from '../achievements'
 import { LEADERBOARD_COMMANDS } from '../leaderboard/commands'
 import { cmd, err, txt, type Line, type Seg } from './lines'
 
@@ -88,7 +90,7 @@ export const COMMANDS: Record<string, Command> = {
         print([{ t: (c.usage ?? name).padEnd(22), cls: 'accent', run: name }, txt(c.desc, 'dim')])
       }
       print([txt('Tip: Tab completes names, ↑ recalls history, and anything underlined is clickable.', 'dim')])
-      print([txt('A few commands are not on this list. ', 'dim'), cmd('eggs'), txt(' keeps score.', 'dim')])
+      print([txt('A few commands are not on this list. Finding them is the fun part.', 'dim')])
     },
   },
   ls: {
@@ -121,7 +123,7 @@ export const COMMANDS: Record<string, Command> = {
     usage: 'cd <folder>',
     run: (args, { cwd, setCwd, print }) => {
       if (cwd === '/' && /^\/?\.\.(\/|$)/.test(args[0] ?? '')) {
-        findEgg('escape')
+        unlock('escape')
         return print([txt("cd: you're already home. There is nothing above it. (I checked.)", 'dim')])
       }
       const path = resolvePath(args[0] ?? '~', cwd)
@@ -142,7 +144,7 @@ export const COMMANDS: Record<string, Command> = {
       if (!args[0]) return print(err('cat: which file? Try `cat about.md`'))
       const path = resolvePath(args[0], cwd)
       if (HIDDEN_FILES[path]) {
-        findEgg('dotfile')
+        unlock('dotfile')
         return print(...textLines(HIDDEN_FILES[path]))
       }
       // `cat about.txt` and friends find the .md version.
@@ -257,6 +259,17 @@ export const COMMANDS: Record<string, Command> = {
       print([txt('Or ', 'dim'), { t: 'open the contact card', cls: 'accent', open: CV_PATH }, txt(', which has the CV too.', 'dim')])
     },
   },
+  updates: {
+    desc: "what's changed on this site lately",
+    run: (_a, { print }) => {
+      openUpdates()
+      print([txt('opening System Updates', 'dim')])
+    },
+  },
+  source: {
+    desc: "this site's source code",
+    run: (_a, { print }) => print([txt('Source: ', 'dim'), { t: SOURCE_URL.replace('https://', ''), href: SOURCE_URL }]),
+  },
   guestbook: {
     desc: 'leave me a note',
     run: (_a, { print }) => {
@@ -271,6 +284,32 @@ export const COMMANDS: Record<string, Command> = {
       if (args[0] !== 'light' && args[0] !== 'dark') return print(err('theme: use `theme light` or `theme dark`'))
       setTheme(args[0])
       print([txt(`theme set to ${args[0]}`, 'dim')])
+    },
+  },
+  wallpaper: {
+    desc: 'pick a desktop background',
+    usage: 'wallpaper [name]',
+    run: (args, { print }) => {
+      const name = args.join(' ')
+      if (!name) {
+        openWallpaperPicker()
+        const segs: Seg[] = [txt('wallpapers: ', 'dim')]
+        WALLPAPERS.forEach((w, i) => {
+          if (i) segs.push(txt('  '))
+          segs.push(w.id === getWallpaper().id ? txt(`[${w.id}]`, 'bold') : cmd(w.id, `wallpaper ${w.id}`))
+        })
+        return print(segs)
+      }
+      const wp = findWallpaper(name)
+      if (!wp) return print(err(`wallpaper: no wallpaper called ${name}. Try \`wallpaper\` for the list.`))
+      setWallpaper(wp.id)
+      print([txt(`wallpaper set to ${wp.name}`, 'dim')])
+    },
+  },
+  screensaver: {
+    desc: 'start the screensaver now',
+    run: (_a, { print }) => {
+      if (!startScreensaver()) print(err('screensaver: phones lock their own screen'))
     },
   },
   echo: {

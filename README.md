@@ -117,6 +117,8 @@ becomes a download of that file instead.
 | `cv` | open the CV & contact window |
 | `contact` | email, links and my local time |
 | `theme light` / `theme dark` | switch theme |
+| `wallpaper [name]` | open the wallpaper picker, or switch straight to one |
+| `screensaver` | start the screensaver now |
 | `guestbook` | open the guestbook |
 | `clear`, `exit` | clear the screen, close the terminal |
 
@@ -130,12 +132,26 @@ Tab completes commands and paths; the up and down arrows recall history.
 | `games` | the itch.io games, read from `/projects/games` when that folder exists |
 | `snake`, `guess` | mini games (snake works with swipes on a phone) |
 | `matrix` | digital rain, any key leaves |
-| `fortune`, `cowsay <text>` | developer fortunes, and a cow to say them |
+| `fortune` | developer fortunes |
 | `skin <name>` | recolour the terminal (green comes back on reload) |
-| `history`, `eggs` | your past commands, and how many secrets you've found |
+| `history` | your past commands |
 
-There are also ten hidden secrets that don't show in `help` or tab completion.
-They live in `src/terminal/eggs.ts` and `src/terminal/found.ts`; no spoilers here.
+## Achievements
+
+There are 20 hidden achievements, in the terminal and around the rest of the
+site. After the first one is found, a notepad on the right keeps score, gives
+hints, times the run (only while the tab is visible) and can reset everything.
+On a phone it stays a small tab. The list lives in `src/achievements/index.ts`,
+which also exports `getProgress()`, `onAchievement()` and `onAllFound()` for
+the leaderboard. Several ideas (the response header, the DNS record, the
+console login, the fake blog login and hidden collectibles) are borrowed from
+[lupine.dev](https://lupine.dev).
+
+Two of them need something outside the code:
+
+- `vercel.json` sends an `x-achievement` header on every response.
+- The DNS needs a TXT record on Cloudflare: name `@` (danishali.dev), content
+  `achievement=https://danishali.dev/found/dug`.
 
 ## Stats
 
@@ -222,6 +238,22 @@ To publish a note, open `pb.danishali.dev/_/`, go to the `guestbook`
 collection and tick `approved`. Delete anything you don't want. The site
 caches the list for a minute. If the key ever leaks, run the script again with
 `--new-key` and update the variable in Vercel.
+
+## Boot, screensaver and wallpapers
+
+- Every page load plays a short boot: green firmware text, then the Soft Paper
+  splash. Reloads in the same tab, and reduced motion, get only the splash. Any
+  key or click skips it. `restart()` in `src/shell/power.ts` closes every window,
+  resets the terminal and plays the full boot again (for a restart command).
+- After 30 seconds without input the screensaver starts (`src/desktop/Screensaver.tsx`).
+  It holds off while a video plays or a live demo has focus.
+- The wallpaper picker (start menu, `wallpaper`, or the phone's Wallpaper icon)
+  offers seven backgrounds, each with a day and a night version that follow the
+  theme. Images are in `public/wallpapers/`; credits and licences are in
+  `src/shell/wallpaper.ts` and shown in the picker. Photos come from the
+  elementary OS wallpaper set (Unsplash, Pexels, and Brendon Porter / Ryan Gorley
+  under CC BY-SA 4.0); the art comes from GNOME backgrounds (Jakub Steiner and
+  Dominik Baran, CC BY-SA 3.0).
 
 ## Leaderboards
 

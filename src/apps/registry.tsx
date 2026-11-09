@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+import { markRead } from '../achievements'
 import { displayPath, findReadme, projectAt, TRASH_DIR } from '../fs'
 import type { FsNode } from '../fs/types'
 import type { OpenSpec, Win } from '../store/windows'
@@ -6,7 +8,9 @@ import CvView from './CvView'
 import FolderView from './FolderView'
 import StatsView from './StatsView'
 import Guestbook from './Guestbook'
+import Updates from './Updates'
 import Terminal from './Terminal'
+import WallpaperPicker from './WallpaperPicker'
 import { AppFrame, ImageView, MarkdownView, PdfView, TextView, VideoView } from './Viewers'
 
 /** What kind of window a file or folder opens in. */
@@ -44,6 +48,9 @@ interface RenderOpts {
 }
 
 export function WindowContent({ win, opts }: { win: Pick<Win, 'kind' | 'path' | 'url' | 'title'>; opts: RenderOpts }) {
+  useEffect(() => {
+    if (win.kind === 'markdown' && win.path) markRead(win.path)
+  }, [win.kind, win.path])
   switch (win.kind) {
     case 'terminal':
       return <Terminal onExit={opts.onExit} showShortcuts={opts.phone} />
@@ -57,12 +64,16 @@ export function WindowContent({ win, opts }: { win: Pick<Win, 'kind' | 'path' | 
       return <VideoView path={win.path} />
     case 'pdf':
       return <PdfView path={win.path} />
+    case 'wallpaper':
+      return <WallpaperPicker />
     case 'stats':
       return <StatsView />
     case 'cv':
       return <CvView />
     case 'guestbook':
       return <Guestbook />
+    case 'updates':
+      return <Updates />
     case 'app':
       return <AppFrame url={win.url} title={win.title} />
     default:
