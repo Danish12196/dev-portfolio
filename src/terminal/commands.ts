@@ -1,7 +1,9 @@
 import { displayPath, findApp, findProject, getNode, projects, resolvePath, root } from '../fs'
 import type { DirNode, FsNode } from '../fs/types'
+import { formatUpdated, NOW_PATH, readNow } from '../apps/now'
 import { openNode } from '../shell/opener'
 import { setTheme } from '../shell/theme'
+import { contact, CV_PATH, localTime } from '../shell/contact'
 import { EGG_COMMANDS, HIDDEN_FILES } from './eggs'
 import { findEgg } from './found'
 import { cmd, err, txt, type Line, type Seg } from './lines'
@@ -122,12 +124,18 @@ export const COMMANDS: Record<string, Command> = {
     },
   },
   run: {
-    desc: "launch a project's live app",
+    desc: "launch a project's live app (games open on itch.io)",
     usage: 'run <project>',
     run: (args, { print }) => {
       const dir = args[0] ? findProject(args[0]) : undefined
       const app = dir && findApp(dir)
       if (!dir) return print(err(`run: ${args[0] ?? '?'}: no such project. Try \`projects\`.`))
+      // Games live on itch.io, which can't be embedded, so `run` opens their page there instead.
+      const itch = !app ? dir.children.find((c) => c.type === 'file' && c.kind === 'link' && /^itch\.link$/i.test(c.name)) : undefined
+      if (itch) {
+        openNode(itch)
+        return print([txt('opening ', 'dim'), txt(dir.meta?.name ?? dir.name, 'accent'), txt(' on itch.io ↗', 'dim')])
+      }
       if (!app) return print(err(`run: ${dir.meta?.name ?? dir.name} has no live app yet.`))
       openNode(app)
       print([txt('launching ', 'dim'), txt(app.name, 'accent')])
@@ -154,11 +162,45 @@ export const COMMANDS: Record<string, Command> = {
       }
     },
   },
+  now: {
+    desc: "what I'm working on right now",
+    run: (_a, { print }) => {
+      const now = readNow()
+      if (!now) return print(err('now: nothing on the go. Suspicious.'))
+      const when = formatUpdated(now.updated)
+      print([txt('Now', 'bold'), txt(when ? ` · updated ${when}` : '', 'dim')])
+      for (const item of now.items) print([txt('  • ', 'accent'), txt(item)])
+      print([txt('Full note: ', 'dim'), { t: 'now.md', open: NOW_PATH }])
+    },
+  },
   whoami: {
     desc: 'who made this',
     run: (_a, { print }) => {
       const about = getNode('/about.md')
       if (about?.type === 'file' && about.text) print(...textLines(about.text))
+    },
+  },
+  cv: {
+    desc: 'open my CV',
+    run: (_a, { print }) => {
+      const cv = getNode(CV_PATH)
+      if (!cv) return print(err('cv: no CV here yet'))
+      openNode(cv)
+      print([txt('opening ', 'dim'), { t: 'cv.md', open: CV_PATH }, txt(' · ', 'dim'), cmd('cat cv.md'), txt(' prints it here instead', 'dim')])
+    },
+  },
+  contact: {
+    desc: 'how to reach me',
+    run: (_a, { print }) => {
+      const c = contact()
+      const row = (label: string, seg: Seg) => print([txt(label.padEnd(10), 'dim'), seg])
+      if (c.email) row('email', { t: c.email, href: `mailto:${c.email}` })
+      for (const l of c.links) row(l.label.toLowerCase(), { t: l.url.replace(/^https?:\/\/(www\.)?/, ''), href: l.url })
+      if (c.timezone && c.location) {
+        const { time, gap } = localTime(c.timezone)
+        row('local', txt(`${time} in ${c.location.split(',')[0]} (${gap})`))
+      }
+      print([txt('Or ', 'dim'), { t: 'open the contact card', cls: 'accent', open: CV_PATH }, txt(', which has the CV too.', 'dim')])
     },
   },
   theme: {

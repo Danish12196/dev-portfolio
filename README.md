@@ -92,6 +92,15 @@ images and video get viewers, PDFs open in a PDF window, and any other file
 opens as plain text. `content/about.md` is the About page and the output of
 `whoami`.
 
+## CV and contact
+
+`content/cv.md` is the CV, shown in the "CV & contact" window (desktop icon,
+start menu, phone home screen, `cv`, or danishali.dev/cv). `content/contact.json`
+holds the name, location, time zone, email and links on the card above it; leave
+a field empty and it's hidden. The window's "Print or save as PDF" button prints
+just the CV on a clean white page. Put a `cv.pdf` in `content/` and the button
+becomes a download of that file instead.
+
 ## Terminal commands
 
 | Command | What it does |
@@ -104,6 +113,8 @@ opens as plain text. `content/about.md` is the About page and the output of
 | `play jeopardy` | launch Jeopardy |
 | `projects` | table of every project |
 | `whoami` | about me |
+| `cv` | open the CV & contact window |
+| `contact` | email, links and my local time |
 | `theme light` / `theme dark` | switch theme |
 | `clear`, `exit` | clear the screen, close the terminal |
 
