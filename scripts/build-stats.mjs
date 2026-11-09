@@ -148,7 +148,11 @@ async function languages(list) {
   for (const r of sample) {
     try {
       const langs = await (await gh(`/repos/${r.full_name}/languages`)).json()
-      for (const [lang, n] of Object.entries(langs)) bytes[lang] = (bytes[lang] ?? 0) + n
+      for (const [lang, n] of Object.entries(langs)) {
+        // Notebooks are mostly saved plots and outputs, which would drown out every real language.
+        if (lang === 'Jupyter Notebook') continue
+        bytes[lang] = (bytes[lang] ?? 0) + n
+      }
     } catch (err) {
       console.warn(`stats: languages for ${r.full_name} skipped (${err.message})`)
     }
@@ -172,7 +176,7 @@ async function recentCommits(list) {
       for (const c of items) {
         const message = c.commit.message.split('\n')[0]
         // Merge commits say nothing a visitor cares about.
-        if (/^Merge (pull request|branch)/.test(message)) continue
+        if (/^Merge\b/.test(message)) continue
         commits.push({ repo: r.name, sha: c.sha.slice(0, 7), message: message.slice(0, 90), date: c.commit.author.date, url: c.html_url })
       }
     } catch (err) {

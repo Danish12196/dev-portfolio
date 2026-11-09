@@ -111,7 +111,7 @@ export default function StatsView() {
       ) : null}
 
       {gh?.languages?.length ? (
-        <Section title="Languages" note="by bytes across my public repos">
+        <Section title="Languages" note="by bytes across my public repos, notebooks left out">
           <Languages langs={gh.languages} />
         </Section>
       ) : null}
