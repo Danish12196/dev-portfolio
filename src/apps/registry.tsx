@@ -1,6 +1,8 @@
 import { displayPath, findReadme, projectAt } from '../fs'
 import type { FsNode } from '../fs/types'
 import type { OpenSpec, Win } from '../store/windows'
+import { CV_PATH } from '../shell/contact'
+import CvView from './CvView'
 import FolderView from './FolderView'
 import Terminal from './Terminal'
 import { AppFrame, ImageView, MarkdownView, PdfView, TextView, VideoView } from './Viewers'
@@ -10,6 +12,7 @@ export function specFor(node: FsNode): OpenSpec {
   if (node.type === 'dir') {
     return { kind: 'folder', path: node.path, title: node.meta?.name ?? displayPath(node.path), color: node.meta?.color }
   }
+  if (node.path === CV_PATH) return { kind: 'cv', path: node.path, title: 'CV & contact' }
   const color = projectColor(node.path)
   if (node.kind === 'app') {
     const title = node.title ?? node.name.replace(/\.app$/, '')
@@ -51,6 +54,8 @@ export function WindowContent({ win, opts }: { win: Pick<Win, 'kind' | 'path' | 
       return <VideoView path={win.path} />
     case 'pdf':
       return <PdfView path={win.path} />
+    case 'cv':
+      return <CvView />
     case 'app':
       return <AppFrame url={win.url} title={win.title} />
     default:
