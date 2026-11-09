@@ -2,6 +2,7 @@ import { displayPath, findApp, findProject, getNode, projects, resolvePath, root
 import type { DirNode, FsNode } from '../fs/types'
 import { openNode } from '../shell/opener'
 import { setTheme } from '../shell/theme'
+import { contact, CV_PATH, localTime } from '../shell/contact'
 import { EGG_COMMANDS, HIDDEN_FILES } from './eggs'
 import { findEgg } from './found'
 import { cmd, err, txt, type Line, type Seg } from './lines'
@@ -159,6 +160,29 @@ export const COMMANDS: Record<string, Command> = {
     run: (_a, { print }) => {
       const about = getNode('/about.md')
       if (about?.type === 'file' && about.text) print(...textLines(about.text))
+    },
+  },
+  cv: {
+    desc: 'open my CV',
+    run: (_a, { print }) => {
+      const cv = getNode(CV_PATH)
+      if (!cv) return print(err('cv: no CV here yet'))
+      openNode(cv)
+      print([txt('opening ', 'dim'), { t: 'cv.md', open: CV_PATH }, txt(' · ', 'dim'), cmd('cat cv.md'), txt(' prints it here instead', 'dim')])
+    },
+  },
+  contact: {
+    desc: 'how to reach me',
+    run: (_a, { print }) => {
+      const c = contact()
+      const row = (label: string, seg: Seg) => print([txt(label.padEnd(10), 'dim'), seg])
+      if (c.email) row('email', { t: c.email, href: `mailto:${c.email}` })
+      for (const l of c.links) row(l.label.toLowerCase(), { t: l.url.replace(/^https?:\/\/(www\.)?/, ''), href: l.url })
+      if (c.timezone && c.location) {
+        const { time, gap } = localTime(c.timezone)
+        row('local', txt(`${time} in ${c.location.split(',')[0]} (${gap})`))
+      }
+      print([txt('Or ', 'dim'), { t: 'open the contact card', cls: 'accent', open: CV_PATH }, txt(', which has the CV too.', 'dim')])
     },
   },
   theme: {
