@@ -4,7 +4,7 @@ import type { DirNode, FsNode } from '../fs/types'
 import { specFor, WindowContent } from '../apps/registry'
 import Icon from '../apps/Icon'
 import { formatUpdated, NOW_PATH, readNow } from '../apps/now'
-import { openGuestbook, openNode, openTerminal, registerOpener } from '../shell/opener'
+import { openGuestbook, openNode, openStats, openTerminal, registerOpener } from '../shell/opener'
 import { useTheme } from '../shell/theme'
 import { topWindowId, useWindows, type Win } from '../store/windows'
 import Wallpaper from './Wallpaper'
@@ -102,6 +102,9 @@ function StartMenu({ onClose }: { onClose: () => void }) {
         )}
         <button type="button" className="pill" onClick={() => (openTerminal(), onClose())}>
           Terminal
+        </button>
+        <button type="button" className="pill" onClick={() => (openStats(), onClose())}>
+          Stats
         </button>
         <button type="button" className="pill" onClick={() => (openGuestbook(), onClose())}>
           Guestbook
@@ -262,7 +265,7 @@ function NowNote() {
   )
 }
 
-function DeskIcon({ node, label, onOpen, color }: { node: FsNode | 'terminal' | 'guestbook'; label: string; onOpen: () => void; color?: string }) {
+function DeskIcon({ node, label, onOpen, color }: { node: FsNode | 'terminal' | 'guestbook' | 'stats'; label: string; onOpen: () => void; color?: string }) {
   return (
     <li>
       <button
@@ -316,6 +319,7 @@ export default function Desktop() {
             <DeskIcon key={p.path} node={p} label={p.name} onOpen={() => openNode(p)} />
           ))}
           <DeskIcon node="terminal" label="terminal" onOpen={openTerminal} />
+          <DeskIcon node="stats" label="stats" onOpen={openStats} />
           {about && <DeskIcon node={about} label="about me" onOpen={() => openNode(about)} />}
           {cv && <DeskIcon node={cv} label="cv & contact" onOpen={() => openNode(cv)} />}
           <DeskIcon node="guestbook" label="guestbook" onOpen={openGuestbook} />

@@ -1,7 +1,8 @@
 import { displayPath, findApp, findProject, getNode, projects, resolvePath, root } from '../fs'
 import type { DirNode, FsNode } from '../fs/types'
+import { ago, duration, level, loadStats, loadVisits, weeks } from '../apps/stats'
 import { formatUpdated, NOW_PATH, readNow } from '../apps/now'
-import { openGuestbook, openNode } from '../shell/opener'
+import { openGuestbook, openNode, openStats } from '../shell/opener'
 import { setTheme } from '../shell/theme'
 import { contact, CV_PATH, localTime } from '../shell/contact'
 import { EGG_COMMANDS, HIDDEN_FILES } from './eggs'
@@ -31,6 +32,46 @@ export interface Command {
 function nodeSeg(node: FsNode): Seg {
   if (node.type === 'dir') return { t: node.name + '/', cls: 'dir', open: node.path }
   return { t: node.name, open: node.path }
+}
+
+const SHADES = ['·', '░', '▒', '▓', '█']
+
+/** GitHub and site numbers, drawn in text. The same data as the Stats window. */
+async function printStats(print: Ctx['print']) {
+  const [stats, visits] = await Promise.all([loadStats(), loadVisits()])
+  const gh = stats?.github
+  const c = gh?.contributions
+  if (c) {
+    print([txt('contributions', 'bold'), txt(c.exact ? `  ${c.total.toLocaleString()} in the last year` : '  the last year', 'dim')])
+    const cols = weeks(c.days, 26)
+    const max = Math.max(...c.days.map((d) => d.count))
+    for (let row = 0; row < 7; row++) {
+      print([txt('  ' + cols.map((w) => (w[row] ? SHADES[c.exact ? level(w[row]!.count, max) : Math.min(4, w[row]!.count)] : ' ')).join(''))])
+    }
+    print([txt(`  streak ${c.currentStreak}d · longest ${c.longestStreak}d · ${c.activeDays} active days`, 'dim')])
+  }
+  if (gh?.languages?.length) {
+    print([], [txt('languages', 'bold')])
+    for (const l of gh.languages) {
+      const n = Math.round(l.share * 24)
+      print([txt('  ' + l.name.padEnd(12)), txt('█'.repeat(n), 'accent'), txt('░'.repeat(24 - n), 'dim'), txt(` ${Math.max(1, Math.round(l.share * 100))}%`)])
+    }
+  }
+  if (gh?.commits?.length) {
+    print([], [txt('recent commits', 'bold')])
+    for (const cm of gh.commits.slice(0, 5)) {
+      print([txt('  '), { t: cm.sha, cls: 'accent', href: cm.url }, txt(` ${cm.repo.padEnd(14)} `, 'dim'), txt(cm.message.slice(0, 48)), txt(`  ${ago(cm.date)}`, 'dim')])
+    }
+  }
+  if (stats?.itch?.length) {
+    print([], [txt('itch.io', 'bold')])
+    for (const g of stats.itch) print([txt('  ' + g.title.padEnd(20)), txt(`${g.views.toLocaleString()} views`, 'dim')])
+  }
+  print([], [txt('this site', 'bold')])
+  if (visits && visits.visits > 0) print([txt(`  ${visits.visits.toLocaleString()} visits, ${duration(visits.avgSeconds)} on average`)])
+  print([txt(`  ${projects().length} projects${stats?.site.commits ? `, ${stats.site.commits} commits to build it` : ''}`)])
+  if (!stats) print([txt('  (the GitHub numbers are missing from this build)', 'dim')])
+  print([], [txt('Prettier as a window: ', 'dim'), cmd('stats -w')])
 }
 
 function textLines(text: string): Line[] {
@@ -161,6 +202,18 @@ export const COMMANDS: Record<string, Command> = {
           txt(m?.tagline ?? ''),
         ])
       }
+    },
+  },
+  stats: {
+    desc: 'GitHub streaks, languages and site visits',
+    usage: 'stats [-w]',
+    run: (args, { print }) => {
+      if (args.some((a) => /^(-w|--window|window)$/.test(a))) {
+        openStats()
+        return print([txt('opening Stats', 'dim')])
+      }
+      print([txt('reading counters…', 'dim')])
+      void printStats(print)
     },
   },
   now: {
