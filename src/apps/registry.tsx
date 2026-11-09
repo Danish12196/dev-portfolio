@@ -1,4 +1,4 @@
-import { displayPath, findReadme, projectAt } from '../fs'
+import { displayPath, findReadme, projectAt, TRASH_DIR } from '../fs'
 import type { FsNode } from '../fs/types'
 import type { OpenSpec, Win } from '../store/windows'
 import { CV_PATH } from '../shell/contact'
@@ -10,7 +10,8 @@ import { AppFrame, ImageView, MarkdownView, PdfView, TextView, VideoView } from 
 /** What kind of window a file or folder opens in. */
 export function specFor(node: FsNode): OpenSpec {
   if (node.type === 'dir') {
-    return { kind: 'folder', path: node.path, title: node.meta?.name ?? displayPath(node.path), color: node.meta?.color }
+    const title = node.meta?.name ?? (node.path === TRASH_DIR ? 'Trash' : displayPath(node.path))
+    return { kind: 'folder', path: node.path, title, color: node.meta?.color }
   }
   if (node.path === CV_PATH) return { kind: 'cv', path: node.path, title: 'CV & contact' }
   const color = projectColor(node.path)

@@ -261,6 +261,59 @@ button {
   background: var(--ic-color, var(--chip));
 }
 
+/* The trash can: a ribbed bin with its lid knocked askew by the paper inside. */
+.ic-trash {
+  width: calc(var(--s) * 0.86);
+  height: var(--s);
+}
+.ic-trash-body {
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 24%;
+  bottom: 0;
+  border: var(--stroke) solid var(--ink);
+  border-radius: 3px 3px calc(var(--s) * 0.14) calc(var(--s) * 0.14);
+  background:
+    repeating-linear-gradient(90deg, transparent 0 calc(var(--s) * 0.13), var(--ink) calc(var(--s) * 0.13) calc(var(--s) * 0.13 + 1.5px), transparent calc(var(--s) * 0.13 + 1.5px) calc(var(--s) * 0.17)) center / 74% 64% no-repeat,
+    var(--chip);
+}
+.ic-trash-lid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 11%;
+  height: calc(var(--s) * 0.13);
+  border: var(--stroke) solid var(--ink);
+  border-radius: 4px;
+  background: var(--chip);
+  transform: rotate(-11deg);
+  transform-origin: 90% 100%;
+}
+.ic-trash-lid::before {
+  content: '';
+  position: absolute;
+  left: 34%;
+  width: 32%;
+  bottom: 100%;
+  height: calc(var(--s) * 0.08);
+  border: var(--stroke) solid var(--ink);
+  border-bottom: 0;
+  border-radius: 4px 4px 0 0;
+  background: var(--chip);
+}
+.ic-trash-paper {
+  position: absolute;
+  left: 22%;
+  top: 8%;
+  width: 44%;
+  height: 24%;
+  border: var(--stroke) solid var(--ink);
+  border-radius: 40% 55% 35% 50%;
+  background: var(--paper);
+  transform: rotate(14deg);
+}
+
 /* ---------- Desktop ---------- */
 .desktop {
   position: relative;
@@ -1193,7 +1246,7 @@ button {
   color: var(--ink);
   text-decoration: none;
 }
-.ph-grid span:last-child {
+.ph-grid button > span:last-child {
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
