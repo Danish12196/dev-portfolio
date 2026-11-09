@@ -9,7 +9,7 @@ const URL_ = process.env.KV_REST_API_URL || process.env.UPSTASH_REDIS_REST_URL
 const TOKEN = process.env.KV_REST_API_TOKEN || process.env.UPSTASH_REDIS_REST_TOKEN
 
 /** True on Vercel when no database is linked yet. The API answers 503 instead of pretending. */
-export const storeMissing = !URL_ && !!process.env.VERCEL_ENV
+export const storeMissing = (!URL_ || !TOKEN) && !!process.env.VERCEL_ENV
 
 /** Runs several commands in one round trip and returns each reply. */
 export async function redis(...cmds: Arg[][]): Promise<Reply[]> {

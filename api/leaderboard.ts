@@ -190,7 +190,7 @@ async function achFinish(req: Request, body: Record<string, unknown>) {
   const active = Number(body.activeMs)
   let ms = Number.isFinite(active) && active > 0 ? Math.min(active, wall) : wall
   if (span > wall + 5000) return fail("that run doesn't add up")
-  ms = Math.round(Math.max(ms, MIN_RUN_MS))
+  ms = Math.round(Math.max(ms, span, MIN_RUN_MS))
   if (wall < MIN_RUN_MS) return fail('that was too fast to be real')
 
   if (await limited(req, 'ach-finish', 10, 3600)) return fail('slow down', 429)
