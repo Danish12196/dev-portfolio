@@ -4,7 +4,7 @@ A small drag and drop game about media control. Articles come in, you tag them,
 and you decide what gets boosted, approved or quietly rejected.
 
 I made it in a bit of a rush, as always, so I could take part in the Pakistan
-Game Jam.
+Game Jam, which ended on 17 August 2026.
 
 ## Controls
 

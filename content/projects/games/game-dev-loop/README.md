@@ -1,8 +1,9 @@
 # Game Dev Loop
 
-My first ever game jam, and I got hit hard by decision paralysis. This game is
-a walk through that experience: a first person trip that keeps changing genre
-as the deadline gets closer, because I never fully committed to one idea.
+My first ever game jam (GMTK Game Jam 2025, which ended on 3 August 2025), and
+I got hit hard by decision paralysis. This game is a walk through that
+experience: a first person trip that keeps changing genre as the deadline gets
+closer, because I never fully committed to one idea.
 
 The fact that it's playable at all is a win in my book.
 
