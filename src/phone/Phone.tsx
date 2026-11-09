@@ -3,7 +3,8 @@ import { findProject, findReadme, getNode, projects, TRASH_DIR } from '../fs'
 import type { FsNode } from '../fs/types'
 import Icon from '../apps/Icon'
 import { specFor, WindowContent } from '../apps/registry'
-import { GUESTBOOK, registerOpener, STATS } from '../shell/opener'
+import { GUESTBOOK, registerOpener, registerWallpaperPicker, STATS, WALLPAPER_SPEC } from '../shell/opener'
+import Boot from '../desktop/Boot'
 import Wallpaper from '../desktop/Wallpaper'
 import type { OpenSpec } from '../store/windows'
 import { SkyStar } from '../achievements/SkyStar'
@@ -42,10 +43,14 @@ export default function Phone() {
       () => setStack((s) => [...s, { kind: 'terminal', title: 'Terminal' }]),
       (spec) => setStack((s) => [...s, spec]),
     )
+    registerWallpaperPicker(() => setStack((s) => [...s, WALLPAPER_SPEC]))
     // After the blue screen or the hack: back to the home screen.
     const home = () => setStack([])
     window.addEventListener('paperos:home', home)
-    return () => window.removeEventListener('paperos:home', home)
+    return () => {
+      registerWallpaperPicker(undefined)
+      window.removeEventListener('paperos:home', home)
+    }
   }, [])
 
   // Screen readers and keyboards land on the new screen's title, like a page change.
@@ -74,6 +79,7 @@ export default function Phone() {
       <Wallpaper compact />
       {!current && <SkyStar />}
       <StatusBar />
+      <Boot />
       {current ? (
         <main className="ph-app">
           <header className="ph-app-bar" style={{ ['--ic-color' as string]: current.color }}>
@@ -133,6 +139,12 @@ export default function Phone() {
                 </button>
               </li>
             )}
+            <li>
+              <button type="button" onClick={() => open(WALLPAPER_SPEC)}>
+                <span className="ic ic-xl ic-tile ic-wallpaper" aria-hidden="true" />
+                <span>Wallpaper</span>
+              </button>
+            </li>
             <li>
               <button type="button" onClick={() => open(STATS)}>
                 <Icon node="stats" size="xl" />

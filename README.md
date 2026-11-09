@@ -117,6 +117,8 @@ becomes a download of that file instead.
 | `cv` | open the CV & contact window |
 | `contact` | email, links and my local time |
 | `theme light` / `theme dark` | switch theme |
+| `wallpaper [name]` | open the wallpaper picker, or switch straight to one |
+| `screensaver` | start the screensaver now |
 | `guestbook` | open the guestbook |
 | `clear`, `exit` | clear the screen, close the terminal |
 
@@ -236,6 +238,22 @@ To publish a note, open `pb.danishali.dev/_/`, go to the `guestbook`
 collection and tick `approved`. Delete anything you don't want. The site
 caches the list for a minute. If the key ever leaks, run the script again with
 `--new-key` and update the variable in Vercel.
+
+## Boot, screensaver and wallpapers
+
+- Every page load plays a short boot: green firmware text, then the Soft Paper
+  splash. Reloads in the same tab, and reduced motion, get only the splash. Any
+  key or click skips it. `restart()` in `src/shell/power.ts` closes every window,
+  resets the terminal and plays the full boot again (for a restart command).
+- After 30 seconds without input the screensaver starts (`src/desktop/Screensaver.tsx`).
+  It holds off while a video plays or a live demo has focus.
+- The wallpaper picker (start menu, `wallpaper`, or the phone's Wallpaper icon)
+  offers seven backgrounds, each with a day and a night version that follow the
+  theme. Images are in `public/wallpapers/`; credits and licences are in
+  `src/shell/wallpaper.ts` and shown in the picker. Photos come from the
+  elementary OS wallpaper set (Unsplash, Pexels, and Brendon Porter / Ryan Gorley
+  under CC BY-SA 4.0); the art comes from GNOME backgrounds (Jakub Steiner and
+  Dominik Baran, CC BY-SA 3.0).
 
 ## Deploying
 

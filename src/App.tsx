@@ -3,6 +3,7 @@ import { findProject, findReadme, getNode } from './fs'
 import { specFor } from './apps/registry'
 import Desktop from './desktop/Desktop'
 import Phone from './phone/Phone'
+import { usePower } from './shell/power'
 import { useWindows } from './store/windows'
 import Notepad, { AchievementToast } from './achievements/Notepad'
 import TakeoverLayer from './achievements/Takeover'
@@ -20,8 +21,8 @@ function usePhone() {
   return phone
 }
 
-/** First visit: terminal open. /projects/<name>: that project's folder and README open too; /cv or /contact: the CV window. */
-function boot() {
+/** First visit (and after a restart): terminal open. /projects/<name>: that project's folder and README open too; /cv or /contact: the CV window. */
+function openStartupWindows() {
   const { windows, open } = useWindows.getState()
   if (windows.length === 0) open({ kind: 'terminal', title: 'Terminal' })
   const cv = getNode('/cv.md')
@@ -37,9 +38,10 @@ function boot() {
 
 export default function App() {
   const phone = usePhone()
+  const boots = usePower((s) => s.boots)
   useEffect(() => {
-    if (!phone) boot()
-  }, [phone])
+    if (!phone) openStartupWindows()
+  }, [phone, boots])
   return (
     <>
       {phone ? <Phone /> : <Desktop />}

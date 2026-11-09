@@ -70,3 +70,6 @@ export const GUESTBOOK: OpenSpec = { kind: 'guestbook', title: 'Guestbook' }
 export function openGuestbook() {
   specOpener(GUESTBOOK)
 }
+
+/** The wallpaper settings window. */
+export const WALLPAPER_SPEC: OpenSpec = { kind: 'wallpaper', title: 'Wallpaper' }

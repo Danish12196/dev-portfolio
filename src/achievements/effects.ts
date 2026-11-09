@@ -1,6 +1,7 @@
 // Full-screen gags: the blue screen after rm -rf, the hack, restart, shutdown and the fake blog login.
 import { create } from 'zustand'
 import { openTerminal } from '../shell/opener'
+import { restart as rebootMachine } from '../shell/power'
 import { useWindows } from '../store/windows'
 import { useTerm } from '../terminal/store'
 import { txt } from '../terminal/lines'
@@ -43,14 +44,14 @@ export function wipe(afterMs: number) {
   setTimeout(() => takeover('bsod'), afterMs)
 }
 
-/** Restart: a short "restarting" screen, every window closed, then a real reload. */
+/** Restart: a short "restarting" screen, then every window closes and the boot sequence plays again. */
 export function restart() {
   unlock('restart')
   takeover('restart')
   setTimeout(() => {
-    useWindows.setState({ windows: [] })
-    location.assign('/')
-  }, 1800)
+    takeover(null)
+    rebootMachine()
+  }, 1500)
 }
 
 export function shutdown() {
