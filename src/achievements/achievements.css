@@ -608,3 +608,8 @@
     }
   }
 }
+
+/* The start menu now has five buttons; let them wrap instead of spilling out. */
+.sm-actions {
+  flex-wrap: wrap;
+}

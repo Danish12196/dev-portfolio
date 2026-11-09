@@ -4,6 +4,8 @@ import type { DirNode, FsNode } from './types'
 export const root = tree as unknown as DirNode
 export const HOME = '/'
 export const PROJECTS_DIR = '/projects'
+/** Abandoned projects, shown as the desktop's trash can rather than in the project lists. */
+export const TRASH_DIR = '/trash'
 
 /** Resolve a shell-style path (absolute, relative, ~, ., ..) against cwd. */
 export function resolvePath(input: string, cwd: string): string {

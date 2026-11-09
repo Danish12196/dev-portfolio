@@ -7,6 +7,8 @@ import { later, useTerm, type Skin } from './store'
 import { ACHIEVEMENTS, isFound, runSeed, unlock, useAchievements } from '../achievements'
 import { restart, shutdown, takeover, wipe } from '../achievements/effects'
 import type { Command } from './commands'
+import { CV_PATH } from '../shell/contact'
+import { openNode } from '../shell/opener'
 
 const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)]
 
@@ -148,14 +150,14 @@ export const EGG_COMMANDS: Record<string, Command> = {
     run: (_a, { print }) => {
       const fromFs = gamesFromFs()
       const list = fromFs.length ? fromFs : FALLBACK_GAMES
-      print([txt('Games', 'bold'), txt(' · made at game jams, all playable in the browser', 'dim')])
+      print([txt('Games', 'bold'), txt(' · made at game jams, all playable in the browser on itch.io', 'dim')])
       for (const g of list) {
         print(
           [g.folder ? { t: g.name, cls: 'dir', open: g.folder } : txt(g.name, 'accent'), txt('  '), { t: 'play ↗', href: g.url }],
           [txt('  ' + g.tagline, 'dim')],
         )
       }
-      print([txt('More at ', 'dim'), { t: 'danish-gamedev.itch.io', href: ITCH }, txt(' · or play one here: ', 'dim'), cmd('snake'), txt(', ', 'dim'), cmd('guess')])
+      print([txt('More at ', 'dim'), { t: 'danish-gamedev.itch.io', href: ITCH }, txt(' · or play one right here: ', 'dim'), cmd('snake'), txt(', ', 'dim'), cmd('guess')])
     },
   },
   itch: { desc: 'same as games', hidden: true, run: (a, c) => EGG_COMMANDS.games.run(a, c) },
@@ -266,6 +268,13 @@ export const EGG_COMMANDS: Record<string, Command> = {
     hidden: true,
     run: (args, { print }) => {
       if (!args.length) return print(err('usage: sudo <command>'))
+      // The one sudo that works.
+      if (/^hire\s+(danish|me)$/i.test(args.join(' '))) {
+        unlock('sudo')
+        const cv = getNode(CV_PATH)
+        if (cv) openNode(cv)
+        return print([txt('Permission granted. ', 'accent'), txt('Opening the contact card…', 'dim')])
+      }
       if (args.join(' ').toLowerCase() === 'make me a sandwich') {
         unlock('sudo')
         return print([txt('Okay.')])
