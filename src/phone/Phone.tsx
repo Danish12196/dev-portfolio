@@ -7,6 +7,8 @@ import { GUESTBOOK, registerOpener, registerWallpaperPicker, STATS, WALLPAPER_SP
 import Boot from '../desktop/Boot'
 import Wallpaper from '../desktop/Wallpaper'
 import type { OpenSpec } from '../store/windows'
+import { SkyStar } from '../achievements/SkyStar'
+import { Star } from '../achievements/Notepad'
 
 function StatusBar() {
   const [now, setNow] = useState(() => new Date())
@@ -42,7 +44,13 @@ export default function Phone() {
       (spec) => setStack((s) => [...s, spec]),
     )
     registerWallpaperPicker(() => setStack((s) => [...s, WALLPAPER_SPEC]))
-    return () => registerWallpaperPicker(undefined)
+    // After the blue screen or the hack: back to the home screen.
+    const home = () => setStack([])
+    window.addEventListener('paperos:home', home)
+    return () => {
+      registerWallpaperPicker(undefined)
+      window.removeEventListener('paperos:home', home)
+    }
   }, [])
 
   // Screen readers and keyboards land on the new screen's title, like a page change.
@@ -69,6 +77,7 @@ export default function Phone() {
   return (
     <div className="phone">
       <Wallpaper compact />
+      {!current && <SkyStar />}
       <StatusBar />
       <Boot />
       {current ? (
@@ -178,6 +187,7 @@ export default function Phone() {
             )}
           </ul>
           <nav className="ph-dock" aria-label="Dock">
+            <Star id="star-menu" className="star-dock" />
             <button type="button" onClick={() => open({ kind: 'terminal', title: 'Terminal' })}>
               <Icon node="terminal" size="lg" />
               <span>Terminal</span>

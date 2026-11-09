@@ -5,6 +5,10 @@
   "rewrites": [{ "source": "/((?!fs/|assets/|favicon|api/|stats\\.json).*)", "destination": "/index.html" }],
   "headers": [
     {
+      "source": "/(.*)",
+      "headers": [{ "key": "x-achievement", "value": "https://danishali.dev/found/headers" }]
+    },
+    {
       "source": "/assets/(.*)",
       "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
     },
