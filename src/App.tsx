@@ -4,6 +4,8 @@ import { specFor } from './apps/registry'
 import Desktop from './desktop/Desktop'
 import Phone from './phone/Phone'
 import { useWindows } from './store/windows'
+import Notepad, { AchievementToast } from './achievements/Notepad'
+import TakeoverLayer from './achievements/Takeover'
 
 const PHONE_QUERY = '(max-width: 720px)'
 
@@ -36,5 +38,12 @@ export default function App() {
   useEffect(() => {
     if (!phone) boot()
   }, [phone])
-  return phone ? <Phone /> : <Desktop />
+  return (
+    <>
+      {phone ? <Phone /> : <Desktop />}
+      <Notepad />
+      <AchievementToast />
+      <TakeoverLayer />
+    </>
+  )
 }

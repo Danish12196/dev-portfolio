@@ -1,3 +1,5 @@
+import { useEffect } from 'react'
+import { markRead } from '../achievements'
 import { displayPath, findReadme, projectAt } from '../fs'
 import type { FsNode } from '../fs/types'
 import type { OpenSpec, Win } from '../store/windows'
@@ -38,6 +40,9 @@ interface RenderOpts {
 }
 
 export function WindowContent({ win, opts }: { win: Pick<Win, 'kind' | 'path' | 'url' | 'title'>; opts: RenderOpts }) {
+  useEffect(() => {
+    if (win.kind === 'markdown' && win.path) markRead(win.path)
+  }, [win.kind, win.path])
   switch (win.kind) {
     case 'terminal':
       return <Terminal onExit={opts.onExit} showShortcuts={opts.phone} />

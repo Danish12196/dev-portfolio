@@ -7,6 +7,9 @@ import { openNode, openTerminal, registerOpener } from '../shell/opener'
 import { useTheme } from '../shell/theme'
 import { topWindowId, useWindows, type Win } from '../store/windows'
 import Wallpaper from './Wallpaper'
+import { Star } from '../achievements/Notepad'
+import { SkyStar } from '../achievements/SkyStar'
+import { restart, shutdown } from '../achievements/effects'
 import Window from './Window'
 
 const GITHUB = 'https://github.com/Danish12196'
@@ -74,6 +77,7 @@ function StartMenu({ onClose }: { onClose: () => void }) {
           <div className="sm-name">Danish Ali</div>
           <div className="sm-sub">Apps, games and the odd homelab tool</div>
         </div>
+        <Star id="star-menu" className="star-menu" />
       </div>
       <div className="sm-label">PROJECTS</div>
       <ul className="sm-list">
@@ -99,6 +103,14 @@ function StartMenu({ onClose }: { onClose: () => void }) {
         <a className="pill" href={GITHUB} target="_blank" rel="noreferrer">
           GitHub
         </a>
+      </div>
+      <div className="sm-power">
+        <button type="button" onClick={() => (onClose(), restart())}>
+          <span aria-hidden="true">↻</span> Restart
+        </button>
+        <button type="button" onClick={() => (onClose(), shutdown())}>
+          <span aria-hidden="true">⏻</span> Shut down
+        </button>
       </div>
     </div>
   )
@@ -272,6 +284,7 @@ export default function Desktop() {
   return (
     <div className="desktop">
       <Wallpaper />
+      <SkyStar />
       <main className="workspace">
         <h1 className="sr-only">Danish Ali, dev portfolio</h1>
         <ul className="desk-icons" aria-label="Desktop">

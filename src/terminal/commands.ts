@@ -3,7 +3,7 @@ import type { DirNode, FsNode } from '../fs/types'
 import { openNode } from '../shell/opener'
 import { setTheme } from '../shell/theme'
 import { EGG_COMMANDS, HIDDEN_FILES } from './eggs'
-import { findEgg } from './found'
+import { unlock } from '../achievements'
 import { cmd, err, txt, type Line, type Seg } from './lines'
 
 export type { Line, Seg } from './lines'
@@ -44,7 +44,7 @@ export const COMMANDS: Record<string, Command> = {
         print([{ t: (c.usage ?? name).padEnd(22), cls: 'accent', run: name }, txt(c.desc, 'dim')])
       }
       print([txt('Tip: Tab completes names, ↑ recalls history, and anything underlined is clickable.', 'dim')])
-      print([txt('A few commands are not on this list. ', 'dim'), cmd('eggs'), txt(' keeps score.', 'dim')])
+      print([txt('A few commands are not on this list. Finding them is the fun part.', 'dim')])
     },
   },
   ls: {
@@ -77,7 +77,7 @@ export const COMMANDS: Record<string, Command> = {
     usage: 'cd <folder>',
     run: (args, { cwd, setCwd, print }) => {
       if (cwd === '/' && /^\/?\.\.(\/|$)/.test(args[0] ?? '')) {
-        findEgg('escape')
+        unlock('escape')
         return print([txt("cd: you're already home. There is nothing above it. (I checked.)", 'dim')])
       }
       const path = resolvePath(args[0] ?? '~', cwd)
@@ -98,7 +98,7 @@ export const COMMANDS: Record<string, Command> = {
       if (!args[0]) return print(err('cat: which file? Try `cat about.md`'))
       const path = resolvePath(args[0], cwd)
       if (HIDDEN_FILES[path]) {
-        findEgg('dotfile')
+        unlock('dotfile')
         return print(...textLines(HIDDEN_FILES[path]))
       }
       // `cat about.txt` and friends find the .md version.

@@ -110,12 +110,26 @@ Tab completes commands and paths; the up and down arrows recall history.
 | `games` | the itch.io games, read from `/projects/games` when that folder exists |
 | `snake`, `guess` | mini games (snake works with swipes on a phone) |
 | `matrix` | digital rain, any key leaves |
-| `fortune`, `cowsay <text>` | developer fortunes, and a cow to say them |
+| `fortune` | developer fortunes |
 | `skin <name>` | recolour the terminal (green comes back on reload) |
-| `history`, `eggs` | your past commands, and how many secrets you've found |
+| `history` | your past commands |
 
-There are also ten hidden secrets that don't show in `help` or tab completion.
-They live in `src/terminal/eggs.ts` and `src/terminal/found.ts`; no spoilers here.
+## Achievements
+
+There are 20 hidden achievements, in the terminal and around the rest of the
+site. After the first one is found, a notepad on the right keeps score, gives
+hints, times the run (only while the tab is visible) and can reset everything.
+On a phone it stays a small tab. The list lives in `src/achievements/index.ts`,
+which also exports `getProgress()`, `onAchievement()` and `onAllFound()` for
+the leaderboard. Several ideas (the response header, the DNS record, the
+console login, the fake blog login and hidden collectibles) are borrowed from
+[lupine.dev](https://lupine.dev).
+
+Two of them need something outside the code:
+
+- `vercel.json` sends an `x-achievement` header on every response.
+- The DNS needs a TXT record on Cloudflare: name `@` (danishali.dev), content
+  `achievement=https://danishali.dev/found/dug`.
 
 ## How it's built
 

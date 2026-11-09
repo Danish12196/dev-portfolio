@@ -6,6 +6,7 @@ import { specFor, WindowContent } from '../apps/registry'
 import { registerOpener } from '../shell/opener'
 import Wallpaper from '../desktop/Wallpaper'
 import type { OpenSpec } from '../store/windows'
+import { SkyStar } from '../achievements/SkyStar'
 
 function StatusBar() {
   const [now, setNow] = useState(() => new Date())
@@ -37,6 +38,10 @@ export default function Phone() {
       (node: FsNode) => setStack((s) => [...s, specFor(node)]),
       () => setStack((s) => [...s, { kind: 'terminal', title: 'Terminal' }]),
     )
+    // After the blue screen or the hack: back to the home screen.
+    const home = () => setStack([])
+    window.addEventListener('paperos:home', home)
+    return () => window.removeEventListener('paperos:home', home)
   }, [])
 
   // Screen readers and keyboards land on the new screen's title, like a page change.
@@ -60,6 +65,7 @@ export default function Phone() {
   return (
     <div className="phone">
       <Wallpaper compact />
+      {!current && <SkyStar />}
       <StatusBar />
       {current ? (
         <main className="ph-app">

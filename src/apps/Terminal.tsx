@@ -2,7 +2,7 @@ import { lazy, Suspense, useEffect, useRef, useState, type KeyboardEvent } from 
 import { displayPath, getNode } from '../fs'
 import { openNode } from '../shell/opener'
 import { complete, execute, WELCOME, type Line, type Seg } from '../terminal/commands'
-import { findEgg } from '../terminal/found'
+import { unlock } from '../achievements'
 import { txt } from '../terminal/lines'
 import { useTerm } from '../terminal/store'
 
@@ -66,7 +66,7 @@ export default function Terminal({ onExit, showShortcuts = false }: { onExit: ()
     setInput('')
     useTerm.getState().setSkin('rainbow')
     push([txt('↑↑↓↓←→←→BA  +30 lives. Rainbow skin unlocked: ', 'bold'), { t: 'skin', cls: 'accent', run: 'skin' }])
-    findEgg('konami')
+    unlock('konami')
     return true
   }
 

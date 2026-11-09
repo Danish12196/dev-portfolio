@@ -4,7 +4,8 @@ import { findProject, getNode, projects } from '../fs'
 import type { DirNode, FsNode } from '../fs/types'
 import { cmd, err, txt, type Line, type Seg } from './lines'
 import { later, useTerm, type Skin } from './store'
-import { EGGS, findEgg, foundEggs, resetEggs } from './found'
+import { ACHIEVEMENTS, isFound, runSeed, unlock, useAchievements } from '../achievements'
+import { restart, shutdown, takeover, wipe } from '../achievements/effects'
 import type { Command } from './commands'
 
 const pick = <T,>(list: T[]) => list[Math.floor(Math.random() * list.length)]
@@ -63,7 +64,7 @@ function gamesFromFs(): Game[] {
     })
 }
 
-/* ---------- fortune and cowsay ---------- */
+/* ---------- fortune ---------- */
 
 const FORTUNES = [
   'It works on my machine. Ship the machine.',
@@ -82,35 +83,6 @@ const FORTUNES = [
   'Commit early, commit often, write better messages than "fix".',
 ]
 
-function cowsay(text: string): Line[] {
-  const words = text.split(/\s+/).filter(Boolean)
-  const rows: string[] = []
-  let row = ''
-  for (const w of words) {
-    if (row && (row + ' ' + w).length > 36) {
-      rows.push(row)
-      row = w
-    } else row = row ? `${row} ${w}` : w
-  }
-  if (row) rows.push(row)
-  const width = Math.max(...rows.map((r) => r.length))
-  const pad = (r: string) => r.padEnd(width)
-  const bubble =
-    rows.length === 1
-      ? [`< ${pad(rows[0])} >`]
-      : rows.map((r, i) => (i === 0 ? `/ ${pad(r)} \\` : i === rows.length - 1 ? `\\ ${pad(r)} /` : `| ${pad(r)} |`))
-  return [
-    ' ' + '_'.repeat(width + 2),
-    ...bubble,
-    ' ' + '-'.repeat(width + 2),
-    '        \\   ^__^',
-    '         \\  (oo)\\_______',
-    '            (__)\\       )\\/\\',
-    '                ||----w |',
-    '                ||     ||',
-  ].map((l) => [txt(l)])
-}
-
 /* ---------- hidden files ---------- */
 
 export const HIDDEN_FILES: Record<string, string> = {
@@ -120,8 +92,18 @@ export const HIDDEN_FILES: Record<string, string> = {
     'Most visitors just click the folders. You typed ls -a,',
     'which means you are my kind of person.',
     '',
-    'There are more secrets in this terminal. `eggs` keeps count.',
+    'There are more secrets around here. Some are not even in the terminal.',
   ].join('\n'),
+}
+
+/* ---------- neofetch colour blocks, with a star hidden among them ---------- */
+
+function neofetchColours(): Line {
+  const blocks = ['#0a0f0a', '#ff7a6b', '#3cff7a', '#f7d774', '#93a6f2', '#f49a8c', '#7dffa8', '#fffdf8'].map((c): Seg => ({ t: '███', color: c }))
+  if (isFound('star-term')) return blocks
+  // The star sits in a different gap every run.
+  const at = 1 + Math.floor(runSeed('term') * (blocks.length - 1))
+  return [...blocks.slice(0, at), { t: '✦', cls: 'dim', run: 'twinkle' }, ...blocks.slice(at)]
 }
 
 /* ---------- skins ---------- */
@@ -153,7 +135,7 @@ export const EGG_COMMANDS: Record<string, Command> = {
           ] as const
         ).map(([k, v]): Line => [txt(`${k}: `, 'accent'), txt(v)]),
         [],
-        ['#0a0f0a', '#ff7a6b', '#3cff7a', '#f7d774', '#93a6f2', '#f49a8c', '#7dffa8', '#fffdf8'].map((c): Seg => ({ t: '███', color: c })),
+        neofetchColours(),
       ]
       const rows = Math.max(LOGO.length, info.length)
       const out: Line[] = []
@@ -180,11 +162,6 @@ export const EGG_COMMANDS: Record<string, Command> = {
   fortune: {
     desc: 'a fortune cookie for developers',
     run: (_a, { print }) => print([txt(pick(FORTUNES))]),
-  },
-  cowsay: {
-    desc: 'a cow says it for you',
-    usage: 'cowsay <text>',
-    run: (args, { print }) => print(...cowsay(args.join(' ') || pick(FORTUNES))),
   },
   snake: {
     desc: 'play snake (arrows or swipe, q quits)',
@@ -223,7 +200,7 @@ export const EGG_COMMANDS: Record<string, Command> = {
     desc: 'recolour this terminal',
     usage: 'skin <name>',
     run: (args, { print }) => {
-      const names = foundEggs().has('konami') ? [...SKINS, 'rainbow' as Skin] : SKINS
+      const names = isFound('konami') ? [...SKINS, 'rainbow' as Skin] : SKINS
       const want = args[0]?.toLowerCase() as Skin | undefined
       if (!want || !names.includes(want)) {
         const segs: Seg[] = [txt('skins: ', 'dim')]
@@ -241,26 +218,48 @@ export const EGG_COMMANDS: Record<string, Command> = {
       history.forEach((h, i) => print([txt(String(i + 1).padStart(4) + '  ', 'dim'), { t: h, run: h }]))
     },
   },
-  eggs: {
-    desc: 'how many secrets you have found',
-    usage: 'eggs [reset]',
-    run: (args, { print }) => {
-      if (args[0] === 'reset') {
-        resetEggs()
-        return print([txt('Forgot every secret you found. Happy hunting.', 'dim')])
-      }
-      const found = foundEggs()
-      const all = Object.keys(EGGS)
-      print([txt(`Secrets found: ${found.size} of ${all.length}`, 'bold')])
-      const bar = all.map((id) => (found.has(id) ? '★' : '·')).join(' ')
-      print([txt(bar, 'accent')])
-      const left = all.filter((id) => !found.has(id))
-      if (left.length) print([txt('hint: ', 'dim'), txt(EGGS[pick(left)])])
-      else print([txt('All found. You are officially a power user.', 'accent')])
-    },
-  },
 
   /* ----- hidden ----- */
+
+  eggs: {
+    desc: 'achievements',
+    hidden: true,
+    run: (_a, { print }) => {
+      const n = Object.keys(useAchievements.getState().found).length
+      if (!n) return print([txt('Nothing found yet. Keep poking around.', 'dim')])
+      useAchievements.getState().setNotepad(true)
+      print([txt(`${n} of ${ACHIEVEMENTS.length} found. The notepad on the right has hints.`, 'dim')])
+    },
+  },
+  achievements: { desc: 'achievements', hidden: true, run: (a, c) => EGG_COMMANDS.eggs.run(a, c) },
+  twinkle: {
+    desc: 'a star',
+    hidden: true,
+    run: (_a, { print }) => {
+      if (isFound('star-term')) return print([txt('✦ already in your pocket.', 'dim')])
+      print([txt('✦ You caught a star hiding in the colours.', 'accent')])
+      unlock('star-term')
+    },
+  },
+  reboot: {
+    desc: 'restart',
+    hidden: true,
+    run: (_a, { print }) => {
+      print([txt('Broadcast message from danish@dev: the system is going down for reboot NOW!', 'bold')])
+      setTimeout(restart, 500)
+    },
+  },
+  restart: { desc: 'restart', hidden: true, run: (a, c) => EGG_COMMANDS.reboot.run(a, c) },
+  shutdown: {
+    desc: 'power off',
+    hidden: true,
+    run: (_a, { print }) => {
+      print([txt('Broadcast message from danish@dev: the system is going down for poweroff NOW!', 'bold')])
+      setTimeout(shutdown, 500)
+    },
+  },
+  poweroff: { desc: 'power off', hidden: true, run: (a, c) => EGG_COMMANDS.shutdown.run(a, c) },
+  halt: { desc: 'power off', hidden: true, run: (a, c) => EGG_COMMANDS.shutdown.run(a, c) },
 
   sudo: {
     desc: 'superpowers',
@@ -268,7 +267,7 @@ export const EGG_COMMANDS: Record<string, Command> = {
     run: (args, { print }) => {
       if (!args.length) return print(err('usage: sudo <command>'))
       if (args.join(' ').toLowerCase() === 'make me a sandwich') {
-        findEgg('sudo')
+        unlock('sudo')
         return print([txt('Okay.')])
       }
       useTerm.getState().capture({
@@ -278,7 +277,7 @@ export const EGG_COMMANDS: Record<string, Command> = {
           const { push, capture } = useTerm.getState()
           capture(null)
           push(err('danish is not in the sudoers file. This incident will be reported.'), [txt('(reported to: nobody. you are fine.)', 'dim')])
-          findEgg('sudo')
+          unlock('sudo')
         },
       })
     },
@@ -300,8 +299,9 @@ export const EGG_COMMANDS: Record<string, Command> = {
       const shown = paths.slice(0, 24)
       shown.forEach((p, i) => later(60 * i, [txt(`removed '~${p}'`, 'dim')]))
       later(60 * shown.length + 200, [txt(`… and ${Math.max(0, paths.length - shown.length)} more`, 'dim')])
-      later(60 * shown.length + 1200, [txt('Just kidding. Nothing was deleted, everything is still here.', 'accent')])
-      setTimeout(() => findEgg('rm'), 60 * shown.length + 1300)
+      later(60 * shown.length + 700, err('rm: cannot remove /system/paperos: device or resource busy'), err('kernel panic: not syncing: attempted to kill the init process'))
+      // The desktop empties out, then the blue screen. Any key afterwards comes back home.
+      wipe(60 * shown.length + 2200)
     },
   },
   vim: {
@@ -324,7 +324,7 @@ export const EGG_COMMANDS: Record<string, Command> = {
           if ([':q', ':q!', ':qa', ':qa!', ':wq', ':x', 'ZZ'].includes(line.trim())) {
             capture(null)
             push([txt('You escaped vim. Put that on your CV.', 'accent')])
-            return findEgg('vim')
+            return unlock('vim')
           }
           tries++
           push(err(line.startsWith(':') ? `E492: Not an editor command: ${line.slice(1)}` : '-- INSERT --  (just kidding, the file is read-only)'))
@@ -362,8 +362,9 @@ export const EGG_COMMANDS: Record<string, Command> = {
         'enhancing… enhancing…',
       ]
       steps.forEach((s, i) => later(450 * i, [txt('> ' + s, 'dim')]))
-      later(450 * steps.length + 300, [txt('ACCESS GRANTED', 'bold')], [txt("…to Danish's projects, which were public anyway. Try ", 'dim'), cmd('projects'), txt('.', 'dim')])
-      setTimeout(() => findEgg('hack'), 450 * steps.length + 400)
+      later(450 * steps.length + 300, [txt('ACCESS GRANTED', 'bold')])
+      // Then the whole screen gets "hacked". Any key afterwards comes back home.
+      setTimeout(() => takeover('hack'), 450 * steps.length + 1000)
     },
   },
   coffee: {
@@ -372,7 +373,7 @@ export const EGG_COMMANDS: Record<string, Command> = {
     run: (_a, { print }) => {
       print([txt('brewing coffee…', 'dim')])
       later(900, err("Error 418: I'm a teapot."), [txt('Try ', 'dim'), cmd('tea'), txt(' instead.', 'dim')])
-      setTimeout(() => findEgg('coffee'), 950)
+      setTimeout(() => unlock('coffee'), 950)
     },
   },
   brew: { desc: 'brew', hidden: true, run: (a, c) => (a[0] === 'coffee' ? EGG_COMMANDS.coffee.run(a, c) : c.print(err(`brew: no formula named ${a[0] ?? '?'} here`))) },
@@ -396,7 +397,7 @@ export const EGG_COMMANDS: Record<string, Command> = {
     hidden: true,
     run: (_a, { print }) => {
       print([txt('Nothing happens.')])
-      findEgg('xyzzy')
+      unlock('xyzzy')
     },
   },
   plugh: { desc: 'magic', hidden: true, run: (_a, { print }) => print([txt('A hollow voice says "Fool."')]) },
@@ -405,7 +406,7 @@ export const EGG_COMMANDS: Record<string, Command> = {
     hidden: true,
     run: (_a, { print }) => {
       print([txt('Yes, 42. Now what was the question?')])
-      findEgg('answer')
+      unlock('answer')
     },
   },
   hello: { desc: 'say hi', hidden: true, run: (_a, { print }) => print([txt('Hi! Thanks for stopping by. Try '), cmd('neofetch'), txt(' or '), cmd('games'), txt('.')]) },
