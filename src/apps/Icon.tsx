@@ -1,10 +1,11 @@
 import type { CSSProperties } from 'react'
+import { TRASH_DIR } from '../fs'
 import type { FsNode } from '../fs/types'
 
 type IconNode = FsNode | 'terminal' | 'about'
 
 /** Rounded, outlined Soft Paper icons, drawn with CSS so they follow the theme. */
-export default function Icon({ node, size = 'md', color }: { node: IconNode; size?: 'sm' | 'md' | 'lg'; color?: string }) {
+export default function Icon({ node, size = 'md', color }: { node: IconNode; size?: 'sm' | 'md' | 'lg' | 'xl'; color?: string }) {
   const cls = `ic ic-${size}`
   if (node === 'terminal')
     return (
@@ -16,6 +17,14 @@ export default function Icon({ node, size = 'md', color }: { node: IconNode; siz
     return (
       <span className={`${cls} ic-tile ic-about`} aria-hidden="true">
         da
+      </span>
+    )
+  if (node.type === 'dir' && node.path === TRASH_DIR)
+    return (
+      <span className={`${cls} ic-trash`} aria-hidden="true">
+        <span className="ic-trash-paper" />
+        <span className="ic-trash-lid" />
+        <span className="ic-trash-body" />
       </span>
     )
   if (node.type === 'dir') {

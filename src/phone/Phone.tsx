@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { findProject, findReadme, getNode, projects } from '../fs'
+import { findProject, findReadme, getNode, projects, TRASH_DIR } from '../fs'
 import type { FsNode } from '../fs/types'
 import Icon from '../apps/Icon'
 import { specFor, WindowContent } from '../apps/registry'
@@ -55,6 +55,7 @@ export default function Phone() {
   const current = stack[stack.length - 1]
   const about = getNode('/about.md')
   const files = getNode('/projects')
+  const trash = getNode(TRASH_DIR)
   const open = (spec: OpenSpec) => setStack((s) => [...s, spec])
 
   return (
@@ -117,6 +118,14 @@ export default function Phone() {
                     da
                   </span>
                   <span>About</span>
+                </button>
+              </li>
+            )}
+            {trash && (
+              <li>
+                <button type="button" onClick={() => open(specFor(trash))}>
+                  <Icon node={trash} size="xl" />
+                  <span>Trash</span>
                 </button>
               </li>
             )}

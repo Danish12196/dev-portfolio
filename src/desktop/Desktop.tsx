@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { getNode, projects } from '../fs'
+import { getNode, projects, TRASH_DIR } from '../fs'
 import type { DirNode, FsNode } from '../fs/types'
 import { specFor, WindowContent } from '../apps/registry'
 import Icon from '../apps/Icon'
@@ -268,6 +268,7 @@ export default function Desktop() {
 
   const top = topWindowId(windows)
   const about = getNode('/about.md')
+  const trash = getNode(TRASH_DIR)
 
   return (
     <div className="desktop">
@@ -280,6 +281,7 @@ export default function Desktop() {
           ))}
           <DeskIcon node="terminal" label="terminal" onOpen={openTerminal} />
           {about && <DeskIcon node={about} label="about me" onOpen={() => openNode(about)} />}
+          {trash && <DeskIcon node={trash} label="trash" onOpen={() => openNode(trash)} />}
         </ul>
         {windows.length === 0 && <p className="desk-hint">Double-click a folder (or select it and press Enter) to open it. The dev/portfolio button opens the start menu.</p>}
         {windows.map((w) => (
