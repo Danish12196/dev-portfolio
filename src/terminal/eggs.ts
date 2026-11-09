@@ -166,14 +166,14 @@ export const EGG_COMMANDS: Record<string, Command> = {
     run: (_a, { print }) => {
       const fromFs = gamesFromFs()
       const list = fromFs.length ? fromFs : FALLBACK_GAMES
-      print([txt('Games', 'bold'), txt(' · made at game jams, all playable in the browser', 'dim')])
+      print([txt('Games', 'bold'), txt(' · made at game jams, all playable in the browser on itch.io', 'dim')])
       for (const g of list) {
         print(
           [g.folder ? { t: g.name, cls: 'dir', open: g.folder } : txt(g.name, 'accent'), txt('  '), { t: 'play ↗', href: g.url }],
           [txt('  ' + g.tagline, 'dim')],
         )
       }
-      print([txt('More at ', 'dim'), { t: 'danish-gamedev.itch.io', href: ITCH }, txt(' · or play one here: ', 'dim'), cmd('snake'), txt(', ', 'dim'), cmd('guess')])
+      print([txt('More at ', 'dim'), { t: 'danish-gamedev.itch.io', href: ITCH }, txt(' · or play one right here: ', 'dim'), cmd('snake'), txt(', ', 'dim'), cmd('guess')])
     },
   },
   itch: { desc: 'same as games', hidden: true, run: (a, c) => EGG_COMMANDS.games.run(a, c) },

@@ -1,5 +1,6 @@
 import { displayPath, findApp, findProject, getNode, projects, resolvePath, root } from '../fs'
 import type { DirNode, FsNode } from '../fs/types'
+import { formatUpdated, NOW_PATH, readNow } from '../apps/now'
 import { openGuestbook, openNode } from '../shell/opener'
 import { setTheme } from '../shell/theme'
 import { contact, CV_PATH, localTime } from '../shell/contact'
@@ -123,12 +124,18 @@ export const COMMANDS: Record<string, Command> = {
     },
   },
   run: {
-    desc: "launch a project's live app",
+    desc: "launch a project's live app (games open on itch.io)",
     usage: 'run <project>',
     run: (args, { print }) => {
       const dir = args[0] ? findProject(args[0]) : undefined
       const app = dir && findApp(dir)
       if (!dir) return print(err(`run: ${args[0] ?? '?'}: no such project. Try \`projects\`.`))
+      // Games live on itch.io, which can't be embedded, so `run` opens their page there instead.
+      const itch = !app ? dir.children.find((c) => c.type === 'file' && c.kind === 'link' && /^itch\.link$/i.test(c.name)) : undefined
+      if (itch) {
+        openNode(itch)
+        return print([txt('opening ', 'dim'), txt(dir.meta?.name ?? dir.name, 'accent'), txt(' on itch.io ↗', 'dim')])
+      }
       if (!app) return print(err(`run: ${dir.meta?.name ?? dir.name} has no live app yet.`))
       openNode(app)
       print([txt('launching ', 'dim'), txt(app.name, 'accent')])
@@ -153,6 +160,17 @@ export const COMMANDS: Record<string, Command> = {
           txt(m?.tagline ?? ''),
         ])
       }
+    },
+  },
+  now: {
+    desc: "what I'm working on right now",
+    run: (_a, { print }) => {
+      const now = readNow()
+      if (!now) return print(err('now: nothing on the go. Suspicious.'))
+      const when = formatUpdated(now.updated)
+      print([txt('Now', 'bold'), txt(when ? ` · updated ${when}` : '', 'dim')])
+      for (const item of now.items) print([txt('  • ', 'accent'), txt(item)])
+      print([txt('Full note: ', 'dim'), { t: 'now.md', open: NOW_PATH }])
     },
   },
   whoami: {

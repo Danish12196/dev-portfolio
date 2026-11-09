@@ -1,6 +1,6 @@
 {
   "name": "Games",
-  "tagline": "Small games I've made for game jams, most of them playable right here",
+  "tagline": "Small games I've made for game jams, all playable in the browser on itch.io",
   "year": 2026,
   "stack": ["Unity", "C#"],
   "status": "playable",

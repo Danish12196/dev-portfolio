@@ -57,6 +57,7 @@ export default function Phone() {
   const back = () => setStack((s) => s.slice(0, -1))
   const current = stack[stack.length - 1]
   const about = getNode('/about.md')
+  const now = getNode('/now.md')
   const cv = getNode('/cv.md')
   const files = getNode('/projects')
   const open = (spec: OpenSpec) => setStack((s) => [...s, spec])
@@ -121,6 +122,16 @@ export default function Phone() {
                     da
                   </span>
                   <span>About</span>
+                </button>
+              </li>
+            )}
+            {now && (
+              <li>
+                <button type="button" onClick={() => open(specFor(now))}>
+                  <span className="ic ic-xl ic-tile ic-now" aria-hidden="true">
+                    now
+                  </span>
+                  <span>Now</span>
                 </button>
               </li>
             )}

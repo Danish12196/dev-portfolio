@@ -198,6 +198,10 @@ button {
   font-size: calc(var(--s) * 0.32);
   border-radius: 50%;
 }
+.ic-now {
+  background: var(--btn-min);
+  font-size: calc(var(--s) * 0.26);
+}
 .ic-link {
   background: var(--paper);
   color: var(--ink);
@@ -314,6 +318,72 @@ button {
 .desk-icon:focus-visible .desk-label {
   background: var(--ink);
   color: var(--paper);
+}
+/* the "working on" sticky note, top right of the desktop, under any windows */
+.now-note {
+  position: absolute;
+  top: 28px;
+  right: 28px;
+  width: 248px;
+  padding: 14px 16px 12px;
+  background: var(--now-note);
+  color: var(--on-pastel);
+  border: var(--stroke) solid var(--ink);
+  border-radius: 6px 6px 18px 6px;
+  box-shadow: var(--shadow-sm);
+  transform: rotate(1.2deg);
+}
+.now-note h2 {
+  margin: 0 0 8px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.now-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mint);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--mint) 70%, transparent);
+  animation: now-pulse 2.4s ease-out infinite;
+}
+@keyframes now-pulse {
+  70% {
+    box-shadow: 0 0 0 7px transparent;
+  }
+}
+.now-note ul {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 14px;
+  line-height: 1.4;
+  display: grid;
+  gap: 5px;
+}
+.now-more {
+  margin-top: 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: color-mix(in srgb, var(--on-pastel) 70%, transparent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.now-more:hover {
+  color: var(--on-pastel);
+}
+@media (max-width: 760px), (max-height: 520px) {
+  .now-note {
+    display: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .now-dot {
+    animation: none;
+  }
 }
 .desk-hint {
   position: absolute;
