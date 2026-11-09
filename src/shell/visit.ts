@@ -11,17 +11,20 @@ export function startVisitClock() {
   let visibleSince = document.visibilityState === 'visible' ? performance.now() : 0
   let pending = 0
   let first = true
+  // The server caps each beacon too, but one page load should never add more than this in total.
+  let allowance = 30 * 60
 
   const flush = () => {
     if (visibleSince) {
       pending += performance.now() - visibleSince
       visibleSince = 0
     }
-    const s = Math.round(pending / 1000)
+    const s = Math.min(allowance, Math.round(pending / 1000))
     if (!first && s < 1) return
     const sent = navigator.sendBeacon?.('/api/visit', JSON.stringify(first ? { s, n: 1 } : { s }))
     if (sent) {
-      pending -= s * 1000
+      pending = allowance > s ? pending - s * 1000 : 0
+      allowance -= s
       first = false
     }
   }

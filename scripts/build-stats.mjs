@@ -164,9 +164,11 @@ async function languages(list) {
 
 async function recentCommits(list) {
   const commits = []
+  let reached = 0
   for (const r of list.slice(0, 6)) {
     try {
       const items = await (await gh(`/repos/${r.full_name}/commits?per_page=5&author=${USER}`)).json()
+      reached++
       for (const c of items) {
         const message = c.commit.message.split('\n')[0]
         // Merge commits say nothing a visitor cares about.
@@ -177,6 +179,8 @@ async function recentCommits(list) {
       console.warn(`stats: commits for ${r.full_name} skipped (${err.message})`)
     }
   }
+  // Every request failing should keep the last deployed commits, not show none.
+  if (!reached) throw new Error('no repo commits could be read')
   return commits.sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8)
 }
 
