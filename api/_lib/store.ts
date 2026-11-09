@@ -86,7 +86,8 @@ function memory(cmd: Arg[]): Reply {
       const rev = rest.includes('REV')
       const sorted = [...z.entries()].sort((a, b) => (rev ? b[1] - a[1] : a[1] - b[1]))
       const stop = Number(rest[1])
-      return sorted.slice(Number(rest[0]), stop < 0 ? sorted.length + stop + 1 : stop + 1).map(([m]) => m)
+      const picked = sorted.slice(Number(rest[0]), stop < 0 ? sorted.length + stop + 1 : stop + 1)
+      return rest.includes('WITHSCORES') ? picked.flatMap(([m, sc]) => [m, String(sc)]) : picked.map(([m]) => m)
     }
     case 'ZRANK':
     case 'ZREVRANK': {

@@ -56,10 +56,18 @@ type Board = keyof typeof BOARDS
 
 async function top(board: Board) {
   const b = BOARDS[board]
-  const [ids] = (await redis(['ZRANGE', b.key, 0, TOP - 1, ...(b.highWins ? ['REV'] : [])])) as [string[]]
-  if (!ids.length) return []
+  const [flat] = (await redis(['ZRANGE', b.key, 0, TOP - 1, ...(b.highWins ? ['REV'] : []), 'WITHSCORES'])) as [(string | number)[]]
+  if (!flat.length) return []
+  const ids = flat.filter((_, i) => i % 2 === 0).map(String)
   const [rows] = (await redis(['HMGET', `${b.key}:meta`, ...ids])) as [(string | null)[]]
-  return rows.flatMap((r) => (r ? [JSON.parse(r) as Entry] : []))
+  // The score comes from the sorted set itself, which Redis updates atomically. The
+  // metadata only adds the name's spelling, so two overlapping saves can't show a stale score.
+  return rows.flatMap((r, i) => {
+    if (!r) return []
+    const e = JSON.parse(r) as Entry
+    const sort = Number(flat[i * 2 + 1])
+    return [{ ...e, value: b.highWins ? Math.ceil(sort) : Math.floor(sort) }]
+  })
 }
 
 /** Saves an entry, keeping each name's best only. Returns the 1-based rank of that name. */
