@@ -2,7 +2,7 @@ import { marked } from 'marked'
 import { useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { getNode } from '../fs'
-import { contact, CV_PATH, localTime, PDF_PATH } from '../shell/contact'
+import { contact, CV_PATH, cvComingSoon, localTime, PDF_PATH } from '../shell/contact'
 
 function cvHtml() {
   const node = getNode(CV_PATH)
@@ -102,7 +102,7 @@ export default function CvView() {
               <a className="pill" href={pdfUrl} download="Danish-Ali-CV.pdf">
                 Download PDF
               </a>
-            ) : (
+            ) : cvComingSoon() ? null : (
               <button type="button" className="pill" onClick={() => setPrinting(true)}>
                 Print or save as PDF
               </button>
