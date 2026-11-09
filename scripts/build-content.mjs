@@ -35,6 +35,48 @@ const COPY = new Set(['image', 'video', 'pdf'])
 
 rmSync(OUT_ASSETS, { recursive: true, force: true })
 
+// Big screenshots and slides get a smaller WebP copy for the viewer; the
+// original stays next to it for "open full size". sharp is optional, so a
+// missing native build only costs page weight, never the build.
+const SHRINK_OVER = 200 * 1024
+const MAX_WIDTH = 1920
+let sharp
+try {
+  sharp = (await import('sharp')).default
+} catch {
+  console.warn('content: sharp not available, images are copied as they are')
+}
+let saved = 0
+
+/** Writes a WebP next to dest when that is meaningfully smaller; returns its URL path or undefined. */
+async function shrink(full, dest, urlPath) {
+  if (!sharp || !/\.(png|jpe?g)$/i.test(full) || statSync(full).size < SHRINK_OVER) return undefined
+  const out = dest.replace(/\.[^.]+$/, '.view.webp')
+  try {
+    const info = await sharp(full).resize({ width: MAX_WIDTH, withoutEnlargement: true }).webp({ quality: 82 }).toFile(out)
+    if (info.size > statSync(full).size * 0.8) {
+      rmSync(out)
+      return undefined
+    }
+    saved += statSync(full).size - info.size
+    return { src: urlPath.replace(/\.[^.]+$/, '.view.webp'), width: info.width, height: info.height }
+  } catch (err) {
+    console.warn(`content: could not shrink ${urlPath} (${err.message})`)
+    return undefined
+  }
+}
+
+/** Pixel size of an image, so the viewer can reserve space before it loads. */
+async function sizeOf(full) {
+  if (!sharp) return undefined
+  try {
+    const { width, height } = await sharp(full).metadata()
+    return width && height ? { width, height } : undefined
+  } catch {
+    return undefined
+  }
+}
+
 function readJson(file) {
   try {
     return JSON.parse(readFileSync(file, 'utf8'))
@@ -138,6 +180,18 @@ async function walk(dir, path) {
       mkdirSync(join(dest, '..'), { recursive: true })
       cpSync(full, dest)
       node.src = `/fs${childPath}`
+      if (kind === 'image') {
+        const small = await shrink(full, dest, node.src)
+        if (small) {
+          node.full = node.src
+          node.src = small.src
+        }
+        const size = small ?? (await sizeOf(full))
+        if (size) {
+          node.width = size.width
+          node.height = size.height
+        }
+      }
     }
     children.push(node)
   }
@@ -162,3 +216,4 @@ writeFileSync(OUT_JSON, JSON.stringify(tree, null, 2))
 const count = (node) => (node.meta ? 1 : 0) + (node.children ?? []).reduce((n, c) => n + count(c), 0)
 const media = (node) => (node.name === 'media' && node.type === 'dir' ? node.children.length : 0) + (node.children ?? []).reduce((n, c) => n + media(c), 0)
 console.log(`content: ${count(tree)} project folders, ${media(tree)} media files -> src/generated/fs.json`)
+if (saved) console.log(`content: WebP copies save ${(saved / 1024 / 1024).toFixed(1)} MB for image viewers`)

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { findProject, findReadme, getNode, projects } from '../fs'
 import type { FsNode } from '../fs/types'
 import Icon from '../apps/Icon'
@@ -14,7 +14,7 @@ function StatusBar() {
     return () => clearInterval(t)
   }, [])
   return (
-    <div className="ph-status">
+    <div className="ph-status" aria-hidden="true">
       <span>{now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}</span>
       <span>danishali.dev</span>
     </div>
@@ -39,6 +39,18 @@ export default function Phone() {
     )
   }, [])
 
+  // Screen readers and keyboards land on the new screen's title, like a page change.
+  const titleRef = useRef<HTMLHeadingElement>(null)
+  const depth = stack.length
+  const first = useRef(true)
+  useEffect(() => {
+    if (first.current) {
+      first.current = false
+      return
+    }
+    titleRef.current?.focus({ preventScroll: true })
+  }, [depth])
+
   const back = () => setStack((s) => s.slice(0, -1))
   const current = stack[stack.length - 1]
   const about = getNode('/about.md')
@@ -50,12 +62,14 @@ export default function Phone() {
       <Wallpaper compact />
       <StatusBar />
       {current ? (
-        <div className="ph-app">
+        <main className="ph-app">
           <header className="ph-app-bar" style={{ ['--ic-color' as string]: current.color }}>
             <button type="button" className="round-btn" onClick={back} aria-label="Back">
               ‹
             </button>
-            <span>{current.title}</span>
+            <h1 className="ph-app-title" ref={titleRef} tabIndex={-1}>
+              {current.title}
+            </h1>
             <button type="button" className="ph-home-btn" onClick={() => setStack([])}>
               Home
             </button>
@@ -73,12 +87,12 @@ export default function Phone() {
               }}
             />
           </div>
-        </div>
+        </main>
       ) : (
         <main className="ph-home">
           <div className="ph-hello">
             <div className="ph-kicker">dev/portfolio</div>
-            <h1>
+            <h1 ref={titleRef} tabIndex={-1}>
               Hi, I&apos;m
               <br />
               Danish
