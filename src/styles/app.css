@@ -2706,3 +2706,37 @@ a.seg,
     display: none;
   }
 }
+
+/* ---------- Dragging things around the desktop ---------- */
+[data-drag='all'],
+.np-head {
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.now-note,
+.np-head {
+  cursor: grab;
+}
+/* Icons stack among themselves (last moved on top) but stay under windows and the dock. */
+.desk-icons,
+.ph-grid {
+  position: relative;
+  z-index: 0;
+}
+.desk-icons li,
+.ph-grid li {
+  position: relative;
+}
+.dragging {
+  transition: none;
+}
+.dragging,
+.dragging * {
+  cursor: grabbing !important;
+}
+.np-tab.dragging,
+.notepad.dragging {
+  z-index: 99991;
+}

@@ -7,7 +7,9 @@ import { formatUpdated, NOW_PATH, readNow } from '../apps/now'
 import { hasWallpaperPicker, openGuestbook, openNode, openStats, openTerminal, openUpdates, openWallpaperPicker, registerOpener, registerWallpaperPicker, viewSource, WALLPAPER_SPEC } from '../shell/opener'
 import { useTheme } from '../shell/theme'
 import { topWindowId, useWindows, type Win } from '../store/windows'
+import { useLayout } from '../store/layout'
 import Boot from './Boot'
+import Draggable from './Draggable'
 import Screensaver from './Screensaver'
 import Wallpaper from './Wallpaper'
 import { Star } from '../achievements/Notepad'
@@ -265,7 +267,7 @@ function NowNote() {
   if (!now || !node) return null
   const when = formatUpdated(now.updated)
   return (
-    <aside className="now-note" aria-labelledby="now-note-title">
+    <Draggable as="aside" id="now-note" className="now-note" aria-labelledby="now-note-title">
       <h2 id="now-note-title">
         <span className="now-dot" aria-hidden="true" />
         Working on
@@ -278,7 +280,7 @@ function NowNote() {
       <button type="button" className="now-more" onClick={() => openNode(node)}>
         {when ? `Updated ${when}` : 'Open note'} · now.md
       </button>
-    </aside>
+    </Draggable>
   )
 }
 
@@ -358,7 +360,7 @@ function ContextMenu({ x, y, items, onClose }: { x: number; y: number; items: (M
 
 function DeskIcon({ node, label, onOpen, color }: { node: FsNode | 'terminal' | 'guestbook' | 'stats'; label: string; onOpen: () => void; color?: string }) {
   return (
-    <li>
+    <Draggable as="li" id={`icon:${label}`} stack>
       <button
         type="button"
         className="desk-icon"
@@ -374,7 +376,7 @@ function DeskIcon({ node, label, onOpen, color }: { node: FsNode | 'terminal' | 
         <Icon node={node} size="lg" color={color} />
         <span className="desk-label">{label}</span>
       </button>
-    </li>
+    </Draggable>
   )
 }
 
@@ -384,6 +386,8 @@ export default function Desktop() {
   const [refreshing, setRefreshing] = useState(0)
   const [theme, setTheme] = useTheme()
   const closeMenu = useCallback(() => setMenu(null), [])
+  const moved = useLayout((s) => Object.keys(s.offsets).length > 0)
+  const resetIcons = useLayout((s) => s.reset)
 
   useEffect(() => {
     fitAll()
@@ -466,6 +470,7 @@ export default function Desktop() {
                   { label: 'Close all windows', run: () => windows.forEach((w) => close(w.id)) },
                 ]
               : []),
+            ...(moved ? [{ label: 'Put icons and notes back', run: resetIcons }] : []),
             'sep',
             ...(hasWallpaperPicker() ? [{ label: 'Change wallpaper…', run: openWallpaperPicker }] : []),
             { label: theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode', run: () => setTheme(theme === 'dark' ? 'light' : 'dark') },

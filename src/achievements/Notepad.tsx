@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import Draggable from '../desktop/Draggable'
 import { ACHIEVEMENTS, formatDuration, getProgress, resetAchievements, runSeed, unlock, useAchievements } from '.'
 
 function useActiveTime() {
@@ -64,14 +65,14 @@ export default function Notepad() {
 
   if (!notepadOpen) {
     return (
-      <button type="button" className="np-tab" onClick={() => fold(false)} aria-label={`Open achievements notepad, ${count} of ${ACHIEVEMENTS.length} found`}>
+      <Draggable as="button" type="button" id="notepad-tab" axis="y" className="np-tab" onClick={() => fold(false)} aria-label={`Open achievements notepad, ${count} of ${ACHIEVEMENTS.length} found`}>
         <span aria-hidden="true">★</span> {count}/{ACHIEVEMENTS.length}
-      </button>
+      </Draggable>
     )
   }
 
   return (
-    <aside className="notepad" aria-label="Achievements">
+    <Draggable as="aside" id="notepad" handle=".np-head" className="notepad" aria-label="Achievements">
       <header className="np-head">
         <span className="np-title">notes.txt</span>
         <button type="button" className="np-fold" onClick={() => fold(true)} aria-label="Fold the notepad away">
@@ -159,7 +160,7 @@ export default function Notepad() {
           </p>
         </footer>
       </div>
-    </aside>
+    </Draggable>
   )
 }
 
