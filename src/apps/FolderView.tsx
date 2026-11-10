@@ -82,7 +82,7 @@ export default function FolderView({ path, onNavigate, singleClick = false }: Pr
               }}
             >
               <Icon node={c} color={meta?.color} />
-              <span className="file-name">{c.type === 'dir' ? c.name : c.kind === 'app' ? `${c.title ?? c.name} app` : c.name}</span>
+              <span className="file-name">{c.type === 'dir' ? (c.meta?.name ?? c.name) : c.kind === 'app' ? `${c.title ?? c.name} app` : c.name}</span>
             </button>
           </li>
         ))}

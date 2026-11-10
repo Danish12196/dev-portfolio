@@ -37,7 +37,7 @@ export function openUpdates() {
   specOpener(UPDATES)
 }
 
-export const SOURCE_URL = 'https://github.com/Danish12196/dev-portfolio'
+export const SOURCE_URL = 'https://github.com/danishali-codes/dev-portfolio'
 
 export function viewSource() {
   window.open(SOURCE_URL, '_blank', 'noopener,noreferrer')

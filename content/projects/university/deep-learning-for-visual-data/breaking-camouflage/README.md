@@ -1,6 +1,6 @@
 # Breaking camouflage
 
-MAAI901 Assessment 2: Applied Vision Transformer Report.
+Deep Learning for Visual Data, Assessment 2: Applied Vision Transformer Report.
 
 Four pre-trained model families, fine-tuned on 52 camouflaged-animal classes from
 COD10K-v3, at Base and Large sizes and at 224 and 448 px, three seeds each:

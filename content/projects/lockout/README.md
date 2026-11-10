@@ -1,4 +1,4 @@
-# Jeopardy
+# Lockout
 
 A quiz night game I built to play with friends. One laptop hosts, the TV shows
 the board, and everyone buzzes in from their own phone. No buzzer hardware, no

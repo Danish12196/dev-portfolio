@@ -16,6 +16,8 @@ export interface ProjectMeta {
   cover?: string
   /** the game jam a game was made for */
   jam?: string
+  /** old names that should still find this project (e.g. /projects/jeopardy) */
+  aliases?: string[]
 }
 
 export interface FileNode {

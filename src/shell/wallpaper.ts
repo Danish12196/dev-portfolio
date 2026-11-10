@@ -34,7 +34,7 @@ export const WALLPAPERS: WallpaperDef[] = [
   {
     id: 'hills',
     name: 'Soft hills',
-    credits: [{ role: 'Drawn', by: 'Danish Ali', href: 'https://github.com/Danish12196/dev-portfolio', license: 'part of this site', licenseHref: 'https://github.com/Danish12196/dev-portfolio' }],
+    credits: [{ role: 'Drawn', by: 'Danish Ali', href: 'https://github.com/danishali-codes/dev-portfolio', license: 'part of this site', licenseHref: 'https://github.com/danishali-codes/dev-portfolio' }],
   },
   {
     id: 'sea-stack',
