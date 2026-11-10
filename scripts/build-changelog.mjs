@@ -8,7 +8,7 @@ import { join } from 'node:path'
 
 const ROOT = new URL('..', import.meta.url).pathname
 const OUT = join(ROOT, 'src/generated/changelog.json')
-const REPO = 'Danish12196/dev-portfolio'
+const REPO = 'danishali-codes/dev-portfolio'
 
 async function fromGitHub() {
   const entries = []

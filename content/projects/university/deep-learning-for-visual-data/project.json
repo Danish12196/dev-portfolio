@@ -1,0 +1,9 @@
+{
+  "name": "Deep Learning for Visual Data",
+  "tagline": "Computer vision: CNNs, vision transformers and generative models",
+  "year": 2026,
+  "stack": ["PyTorch", "Vision transformers"],
+  "status": "study",
+  "color": "#EFB247",
+  "order": 1
+}

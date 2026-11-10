@@ -1,0 +1,9 @@
+{
+  "name": "NLP and LLMs",
+  "tagline": "Natural Language Processing & Large Language Models",
+  "year": 2026,
+  "stack": ["scikit-learn", "LLMs"],
+  "status": "study",
+  "color": "#E6D065",
+  "order": 2
+}

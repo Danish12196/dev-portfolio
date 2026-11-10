@@ -58,7 +58,9 @@ export function allProjects(dir: DirNode | undefined = getNode(PROJECTS_DIR) as 
 /** Find a project by folder name or display name, e.g. "fuloos", "Fuloos" or "ledger". */
 export function findProject(name: string): DirNode | undefined {
   const q = name.toLowerCase()
-  return allProjects().find((p) => p.name.toLowerCase() === q || p.meta?.name.toLowerCase() === q)
+  return allProjects().find(
+    (p) => p.name.toLowerCase() === q || p.meta?.name.toLowerCase() === q || p.meta?.aliases?.some((a) => a.toLowerCase() === q),
+  )
 }
 
 /** The innermost project folder that contains path, if any. */
