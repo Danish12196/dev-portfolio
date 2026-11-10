@@ -451,7 +451,7 @@ export const EGG_COMMANDS: Record<string, Command> = {
       if (sub === 'status') return print([txt('On branch main')], [txt('nothing to commit, working tree clean', 'dim')])
       if (sub === 'blame') return print([txt('Danish (every line, no regrets)')])
       if (sub === 'push') return print(err('git push: permission denied. This is the live site, not a repo you own.'))
-      print([txt('The real repo lives on GitHub: ', 'dim'), { t: 'github.com/Danish12196', href: 'https://github.com/Danish12196' }])
+      print([txt('The real repo lives on GitHub: ', 'dim'), { t: 'github.com/danishali-codes', href: 'https://github.com/danishali-codes' }])
     },
   },
 }

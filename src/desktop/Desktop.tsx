@@ -15,7 +15,7 @@ import { SkyStar } from '../achievements/SkyStar'
 import { restart, shutdown } from '../achievements/effects'
 import Window from './Window'
 
-const GITHUB = 'https://github.com/Danish12196'
+const GITHUB = 'https://github.com/danishali-codes'
 
 function Clock() {
   const [now, setNow] = useState(() => new Date())

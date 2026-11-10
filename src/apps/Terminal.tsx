@@ -14,7 +14,7 @@ useTerm.setState({ lines: WELCOME })
 
 const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a']
 
-const SHORTCUTS = ['help', 'projects', 'ls', 'cd ..', 'open fuloos', 'play jeopardy', 'games', 'neofetch', 'snake', 'exit']
+const SHORTCUTS = ['help', 'projects', 'ls', 'cd ..', 'open fuloos', 'play lockout', 'games', 'neofetch', 'snake', 'exit']
 
 export default function Terminal({ onExit, showShortcuts = false }: { onExit: () => void; showShortcuts?: boolean }) {
   const { lines, cwd, history, handler, program, skin, push, clear, setCwd, addHistory, capture, launch } = useTerm()

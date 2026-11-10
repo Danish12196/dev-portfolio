@@ -1,6 +1,6 @@
 # Ledger
 
-MAAI902 Assessment 2: NLP solution design.
+NLP and LLMs, Assessment 2: NLP solution design.
 
 Ledger reads the SMS alerts UAE banks send after every card payment, puts each
 expense into one of 12 spending categories with a calibrated confidence score,

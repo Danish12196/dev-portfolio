@@ -1,7 +1,7 @@
 # Autoencoders
 
 An interactive, scrollable presentation about autoencoders and variational
-autoencoders, made for MAAI901. Every key idea is shown live with small models
+autoencoders, made for Deep Learning for Visual Data. Every key idea is shown live with small models
 trained on 64x64 cat faces, running right in your browser.
 
 ## How it's built

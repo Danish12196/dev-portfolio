@@ -1,9 +1,0 @@
-{
-  "name": "MAAI901",
-  "tagline": "Deep Learning for Visual Data",
-  "year": 2026,
-  "stack": ["PyTorch", "Vision transformers"],
-  "status": "study",
-  "color": "#F4A6A0",
-  "order": 1
-}

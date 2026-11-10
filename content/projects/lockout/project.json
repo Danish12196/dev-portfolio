@@ -1,5 +1,5 @@
 {
-  "name": "Jeopardy",
+  "name": "Lockout",
   "tagline": "A homemade quiz game to play with friends",
   "year": 2026,
   "stack": [
@@ -10,5 +10,8 @@
   "status": "live",
   "color": "#93A6F2",
   "order": 2,
-  "repo": "Danish12196/lockout"
+  "repo": "danishali-codes/lockout",
+  "aliases": [
+    "jeopardy"
+  ]
 }

@@ -37,7 +37,7 @@ const danish = {
     unlock('console')
   },
   whoami() {
-    console.log('%cDanish Ali, developer in Dubai. %chttps://github.com/Danish12196', body, accent)
+    console.log('%cDanish Ali, developer in Dubai. %chttps://github.com/danishali-codes', body, accent)
   },
   progress() {
     const p = getProgress()

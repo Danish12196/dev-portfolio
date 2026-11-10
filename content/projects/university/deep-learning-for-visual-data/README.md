@@ -1,4 +1,4 @@
-# MAAI901 Deep Learning for Visual Data
+# Deep Learning for Visual Data
 
 The computer vision subject of my master's (Autumn 2026): CNNs, vision
 transformers, self-supervised pre-training, and generative models such as

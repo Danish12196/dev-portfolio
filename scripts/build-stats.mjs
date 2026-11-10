@@ -17,8 +17,8 @@ import { pathToFileURL } from 'node:url'
 
 const ROOT = new URL('..', import.meta.url).pathname
 const OUT = join(ROOT, 'public/stats.json')
-const USER = 'Danish12196'
-const SITE_REPO = 'Danish12196/dev-portfolio'
+const USER = 'danishali-codes'
+const SITE_REPO = 'danishali-codes/dev-portfolio'
 const LIVE = 'https://danishali.dev/stats.json'
 
 const GITHUB_HEADERS = {

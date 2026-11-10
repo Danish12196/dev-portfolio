@@ -9,7 +9,7 @@ The projects on this desktop:
 
 - **Fuloos** tracks my money. It reads UAE bank SMS alerts and statements,
   suggests categories, and spots the bills and subscriptions that repeat.
-- **Jeopardy** is our quiz night game. The TV shows the board, and everyone buzzes
+- **Lockout** is our quiz night game. The TV shows the board, and everyone buzzes
   in from their phone.
 - **University** has my coursework: a benchmark of vision models on camouflaged
   animals, an interactive talk on autoencoders, and Ledger, which sorts bank SMS
@@ -18,5 +18,5 @@ The projects on this desktop:
 Most of it is React and TypeScript on the front, PocketBase behind, and Python
 and PyTorch when there's a model involved.
 
-- GitHub: [Danish12196](https://github.com/Danish12196)
+- GitHub: [danishali-codes](https://github.com/danishali-codes)
 - Site: [danishali.dev](https://danishali.dev)

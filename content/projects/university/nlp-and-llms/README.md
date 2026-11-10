@@ -1,4 +1,4 @@
-# MAAI902 Natural Language Processing & LLMs
+# Natural Language Processing & LLMs
 
 The language subject of my master's: text classification, evaluation, and putting
 large language models to work safely.

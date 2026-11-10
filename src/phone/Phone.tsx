@@ -198,7 +198,7 @@ export default function Phone() {
                 <span>Files</span>
               </button>
             )}
-            <a href="https://github.com/Danish12196" target="_blank" rel="noreferrer">
+            <a href="https://github.com/danishali-codes" target="_blank" rel="noreferrer">
               <span className="ic ic-lg ic-tile ic-contact" aria-hidden="true">
                 @
               </span>

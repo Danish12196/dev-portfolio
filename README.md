@@ -4,7 +4,7 @@ The source for [danishali.dev](https://danishali.dev): my projects presented as 
 tiny operating system.
 
 - **Terminal mode.** The site opens on a desktop with a terminal in front. Type
-  `help`, `projects`, `open fuloos` or `play jeopardy`. Anything underlined is
+  `help`, `projects`, `open fuloos` or `play lockout`. Anything underlined is
   clickable if you'd rather not type.
 - **Desktop mode.** Close, minimise or `exit` the terminal to get the desktop,
   with a taskbar along the bottom (start menu, project search, open windows and
@@ -39,13 +39,13 @@ content/projects/fuloos/
 ```
 
 Folders can nest: `content/projects/university/` holds one folder per subject
-(`MAAI901`, `MAAI902`), and each subject holds its projects. Any folder with a
+(`deep-learning-for-visual-data`, `nlp-and-llms`), and each subject holds its projects. Any folder with a
 `project.json` gets the project header on its README, and `open`/`run` find it by
 name (`run ledger`).
 
 ### Screenshots and videos from a project's own repo
 
-Add `"repo": "Danish12196/fuloos"` to `project.json` and the build lists that
+Add `"repo": "danishali-codes/fuloos"` to `project.json` and the build lists that
 repo's `portfolio/` folder (or the folder named by `"media"`) and adds it to the
 project as `media/`. The files load straight from GitHub, so pushing a new
 screenshot to the project's repo and redeploying this site is enough. `demo.mp4`
@@ -67,7 +67,7 @@ University projects keep their media in this repo instead, under each project's
   "status": "live",
   "color": "#2f9e6b",
   "order": 1,
-  "repo": "Danish12196/fuloos"
+  "repo": "danishali-codes/fuloos"
 }
 ```
 
@@ -110,7 +110,7 @@ becomes a download of that file instead.
 | `cat <file>` | print a file |
 | `open <name>` | open a project, folder or file in a window |
 | `run <project>` | launch a project's live app |
-| `play jeopardy` | launch Jeopardy |
+| `play lockout` | launch Lockout |
 | `projects` | table of every project |
 | `whoami` | about me |
 | `stats` | GitHub streaks, languages, recent commits and site visits (`stats -w` opens the window) |
@@ -258,7 +258,7 @@ caches the list for a minute. If the key ever leaks, run the script again with
 ## Deploying
 
 The site deploys to Vercel (`vercel.json` sends every route to the app so links
-like `/projects/jeopardy` open that project's window). The domain's DNS stays on
+like `/projects/lockout` open that project's window). The domain's DNS stays on
 Cloudflare and points `danishali.dev` at Vercel.
 
 ## To do
