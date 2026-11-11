@@ -30,10 +30,10 @@ lately there's a model in most of them too.
 **Master of Applied Artificial Intelligence**, University of Wollongong in
 Dubai. In progress, 2026. ( GUESS: start year and expected finish not known )
 
-- *Deep Learning for Visual Data (MAAI901):* benchmarked ViT, ConvNeXt, CLIP
+- *Deep Learning for Visual Data:* benchmarked ViT, ConvNeXt, CLIP
   and DINOv2 on classifying camouflaged animals in COD10K, and built an
   interactive talk on autoencoders that runs the models in the browser.
-- *NLP and LLMs (MAAI902):* Ledger, which sorts UAE bank SMS alerts into
+- *NLP and LLMs:* Ledger, which sorts UAE bank SMS alerts into
   spending categories with scikit-learn and answers questions about them with
   Qwen2.5 running in the browser through WebLLM.
 
@@ -51,7 +51,7 @@ Dubai. In progress, 2026. ( GUESS: start year and expected finish not known )
 - **Fuloos** (2026): a money tracker that reads UAE bank SMS alerts and
   statements, suggests categories and spots repeating bills.
   TypeScript, React, PocketBase. [fuloos.danishali.dev](https://fuloos.danishali.dev)
-- **Jeopardy** (2026): our quiz night game. The TV shows the board and
+- **Lockout** (2026): our quiz night game. The TV shows the board and
   everyone buzzes in from their phone, in real time.
   TypeScript, React, PocketBase. [jeopardy.danishali.dev](https://jeopardy.danishali.dev)
 - **This site** (2026): a portfolio that runs as a tiny desktop OS with a
@@ -69,7 +69,7 @@ All made in Unity with C#, and playable on this site.
 
 ## Skills
 
-- **Languages:** TypeScript, JavaScript, Python, Go, C# ( GUESS: Go from the chat app and Jeopardy backend repos )
+- **Languages:** TypeScript, JavaScript, Python, Go, C# ( GUESS: Go from the chat app and Lockout backend repos )
 - **Web:** React, Vite, Zustand, PocketBase, Vercel
 - **Machine learning:** PyTorch, scikit-learn, vision transformers, CLIP,
   DINOv2, ONNX, WebLLM

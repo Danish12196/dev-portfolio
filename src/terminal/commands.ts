@@ -186,9 +186,9 @@ export const COMMANDS: Record<string, Command> = {
     },
   },
   play: {
-    desc: 'play Jeopardy',
-    usage: 'play jeopardy',
-    run: (args, ctx) => COMMANDS.run.run([args[0] ?? 'jeopardy'], ctx),
+    desc: 'play Lockout',
+    usage: 'play lockout',
+    run: (args, ctx) => COMMANDS.run.run([args[0] ?? 'lockout'], ctx),
   },
   projects: {
     desc: 'table of every project',

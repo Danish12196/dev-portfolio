@@ -5,6 +5,7 @@ import Icon from '../apps/Icon'
 import { specFor, WindowContent } from '../apps/registry'
 import { GUESTBOOK, registerOpener, registerWallpaperPicker, STATS, WALLPAPER_SPEC } from '../shell/opener'
 import Boot from '../desktop/Boot'
+import Draggable from '../desktop/Draggable'
 import Wallpaper from '../desktop/Wallpaper'
 import type { OpenSpec } from '../store/windows'
 import { SkyStar } from '../achievements/SkyStar'
@@ -120,70 +121,70 @@ export default function Phone() {
           </div>
           <ul className="ph-grid">
             {projects().map((p) => (
-              <li key={p.path}>
+              <Draggable as="li" key={p.path} id={`app:${p.name}`} stack>
                 <button type="button" onClick={() => open(specFor(p))}>
                   <span className="ic ic-xl ic-tile ic-app" style={{ ['--ic-color' as string]: p.meta?.color }} aria-hidden="true">
                     {(p.meta?.name ?? p.name).slice(0, 1).toUpperCase()}
                   </span>
                   <span>{p.meta?.name ?? p.name}</span>
                 </button>
-              </li>
+              </Draggable>
             ))}
             {about && (
-              <li>
+              <Draggable as="li" id="app:about" stack>
                 <button type="button" onClick={() => open(specFor(about))}>
                   <span className="ic ic-xl ic-tile ic-about" aria-hidden="true">
                     da
                   </span>
                   <span>About</span>
                 </button>
-              </li>
+              </Draggable>
             )}
-            <li>
+            <Draggable as="li" id="app:wallpaper" stack>
               <button type="button" onClick={() => open(WALLPAPER_SPEC)}>
                 <span className="ic ic-xl ic-tile ic-wallpaper" aria-hidden="true" />
                 <span>Wallpaper</span>
               </button>
-            </li>
-            <li>
+            </Draggable>
+            <Draggable as="li" id="app:stats" stack>
               <button type="button" onClick={() => open(STATS)}>
                 <Icon node="stats" size="xl" />
                 <span>Stats</span>
               </button>
-            </li>
+            </Draggable>
             {now && (
-              <li>
+              <Draggable as="li" id="app:now" stack>
                 <button type="button" onClick={() => open(specFor(now))}>
                   <span className="ic ic-xl ic-tile ic-now" aria-hidden="true">
                     now
                   </span>
                   <span>Now</span>
                 </button>
-              </li>
+              </Draggable>
             )}
             {cv && (
-              <li>
+              <Draggable as="li" id="app:cv" stack>
                 <button type="button" onClick={() => open(specFor(cv))}>
                   <Icon node={cv} size="xl" />
                   <span>CV</span>
                 </button>
-              </li>
+              </Draggable>
             )}
-            <li>
+            <Draggable as="li" id="app:guestbook" stack>
               <button type="button" onClick={() => open(GUESTBOOK)}>
                 <span className="ic ic-xl ic-tile ic-guestbook" aria-hidden="true">
                   ✎
                 </span>
                 <span>Guestbook</span>
               </button>
-            </li>
+            </Draggable>
             {trash && (
-              <li>
+              <Draggable as="li" id="app:trash" stack>
                 <button type="button" onClick={() => open(specFor(trash))}>
                   <Icon node={trash} size="xl" />
                   <span>Trash</span>
                 </button>
-              </li>
+              </Draggable>
             )}
           </ul>
           <nav className="ph-dock" aria-label="Dock">
@@ -198,7 +199,7 @@ export default function Phone() {
                 <span>Files</span>
               </button>
             )}
-            <a href="https://github.com/Danish12196" target="_blank" rel="noreferrer">
+            <a href="https://github.com/danishali-codes" target="_blank" rel="noreferrer">
               <span className="ic ic-lg ic-tile ic-contact" aria-hidden="true">
                 @
               </span>
