@@ -382,9 +382,6 @@ export function complete(input: string, cwd: string): string {
   return parts.join(' ')
 }
 
-export const WELCOME: Line[] = [
-  [txt('Dev portfolio', 'bold'), txt(` · ${projects().length} projects in `, 'dim'), { t: '~/projects', cls: 'dir', open: '/projects' }],
-  [txt('Type ', 'dim'), cmd('help'), txt(' to look around, ', 'dim'), cmd('projects'), txt(' for the list, or ', 'dim'), cmd('exit'), txt(' for the desktop.', 'dim')],
-]
+export { WELCOME } from './lines'
 
 export { root }

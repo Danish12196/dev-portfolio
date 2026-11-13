@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { getNode } from '../fs'
 
 export type WindowKind = 'terminal' | 'folder' | 'markdown' | 'text' | 'image' | 'video' | 'pdf' | 'app' | 'cv' | 'guestbook' | 'stats' | 'updates' | 'wallpaper'
 
@@ -163,7 +164,15 @@ export const useWindows = create<WindowState>()(
         if (next.some((w, i) => w !== windows[i])) set({ windows: next })
       },
     }),
-    { name: 'devportfolio.windows', version: 1 },
+    {
+      name: 'devportfolio.windows',
+      version: 1,
+      onRehydrateStorage: () => (state) => {
+        if (!state) return
+        const valid = state.windows.filter((w) => !w.path || Boolean(getNode(w.path)))
+        if (valid.length !== state.windows.length) state.windows = valid
+      },
+    },
   ),
 )
 

@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { displayPath, getNode } from '../fs'
 import { openNode } from '../shell/opener'
-import { complete, execute, WELCOME, type Line, type Seg } from '../terminal/commands'
+import { complete, execute, type Line, type Seg } from '../terminal/commands'
 import { unlock } from '../achievements'
 import { txt } from '../terminal/lines'
 import { useTerm } from '../terminal/store'
@@ -9,8 +9,6 @@ import { useTerm } from '../terminal/store'
 
 const Snake = lazy(() => import('../terminal/Snake'))
 const Matrix = lazy(() => import('../terminal/Matrix'))
-
-useTerm.setState({ lines: WELCOME })
 
 const KONAMI = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'ArrowLeft', 'ArrowRight', 'b', 'a']
 

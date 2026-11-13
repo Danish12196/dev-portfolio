@@ -41,6 +41,7 @@ function json(body: unknown, status = 200, headers: Record<string, string> = {})
 function pb(path: string, init: RequestInit = {}) {
   return fetch(`${COLLECTION}${path}`, {
     ...init,
+    signal: init.signal ?? AbortSignal.timeout(5000),
     headers: { 'Content-Type': 'application/json', 'X-Guestbook-Key': KEY, ...(init.headers ?? {}) },
   })
 }
@@ -94,10 +95,18 @@ async function notify(name: string, message: string) {
 
 export async function GET() {
   if (!KEY) return json({ notes: [], error: 'The guestbook is not set up yet.' }, 503)
-  const res = await pb(`?perPage=50&sort=-created&filter=${encodeURIComponent('approved = true')}&fields=id,name,message,created`)
-  if (!res.ok) return json({ notes: [], error: 'Could not load the guestbook.' }, 502)
-  const data = (await res.json()) as { items: { id: string; name: string; message: string; created: string }[] }
-  return json({ notes: data.items }, 200, { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=600' })
+  try {
+    const res = await pb(`?perPage=50&sort=-created&filter=${encodeURIComponent('approved = true')}&fields=id,name,message,created`)
+    if (!res.ok) {
+      console.error('guestbook GET failed:', res.status)
+      return json({ notes: [], error: 'Could not load the guestbook.' }, 502)
+    }
+    const data = (await res.json()) as { items: { id: string; name: string; message: string; created: string }[] }
+    return json({ notes: data.items }, 200, { 'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=600' })
+  } catch (err) {
+    console.error('guestbook GET error:', err)
+    return json({ notes: [], error: 'Could not load the guestbook.' }, 502)
+  }
 }
 
 export async function POST(request: Request) {
@@ -132,7 +141,8 @@ export async function POST(request: Request) {
 
     const res = await pb('', { method: 'POST', body: JSON.stringify({ name, message, visitor, approved: false }) })
     if (!res.ok) throw new Error(`PocketBase ${res.status}`)
-  } catch {
+  } catch (err) {
+    console.error('guestbook POST error:', err)
     return json({ error: 'Could not save the note. Try again in a bit.' }, 502)
   }
 
