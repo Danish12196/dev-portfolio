@@ -9,7 +9,8 @@
 // visitors can't write to PocketBase directly and skip the checks.
 // Locally, with no key, an in-memory stand-in is used instead.
 
-const PB = (process.env.PB_URL || 'https://pb.danishali.dev').replace(/\/+$/, '')
+import { PB, pbDate, pbFetch } from './pb.js'
+
 export const KEY = process.env.LEADERBOARD_KEY || ''
 
 /** True on Vercel when the key isn't set yet. The API answers 503 instead of pretending. */
@@ -34,13 +35,11 @@ export interface Store {
 /* ------------------------------ PocketBase ------------------------------ */
 
 const q = (s: string) => `"${s.replace(/["\\]/g, '')}"`
-/** PocketBase wants "YYYY-MM-DD HH:MM:SS.sssZ" in filters. */
-const pbDate = (ms: number) => new Date(ms).toISOString().replace('T', ' ')
 
 async function pb<T>(collection: string, path = '', init: RequestInit = {}): Promise<{ ok: boolean; status: number; body: T }> {
-  const res = await fetch(`${PB}/api/collections/${collection}/records${path}`, {
+  const res = await pbFetch(`${PB}/api/collections/${collection}/records${path}`, {
     ...init,
-    headers: { 'Content-Type': 'application/json', 'X-Leaderboard-Key': KEY, ...(init.headers ?? {}) },
+    headers: { 'X-Leaderboard-Key': KEY, ...(init.headers ?? {}) },
   })
   const body = (await res.json().catch(() => ({}))) as T
   if (res.status >= 500) throw new Error(`PocketBase ${res.status}`)
@@ -124,6 +123,7 @@ const pocketbase: Store = {
       fields: 'id',
       filter: `board = ${q(board)} && (value ${better} ${mine!.value} || (value = ${mine!.value} && at < ${mine!.at}))`,
     })
+    if (!ahead.ok) throw new Error(`PocketBase ${ahead.status}`)
     return { rank: ahead.body.totalItems + 1, improved }
   },
 }

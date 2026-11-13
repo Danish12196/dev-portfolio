@@ -21,18 +21,22 @@ async function printBoard(board: Board) {
   )
 }
 
+export function showScores(want: Board[] = ['snake', 'achievements']) {
+  const { push } = useTerm.getState()
+  push([txt('loading…', 'dim')])
+  ;(async () => {
+    for (const b of want) await printBoard(b)
+    push([txt('Play ', 'dim'), cmd('snake'), txt(' to get on the board.', 'dim')])
+  })()
+}
+
 export const LEADERBOARD_COMMANDS: Record<string, Command> = {
   scores: {
     desc: 'leaderboards for snake and achievements',
     usage: 'scores [snake|achievements]',
     run: (args) => {
-      const want = args[0]?.startsWith('a') ? ['achievements'] : args[0]?.startsWith('s') ? ['snake'] : ['snake', 'achievements']
-      const { push } = useTerm.getState()
-      push([txt('loading…', 'dim')])
-      ;(async () => {
-        for (const b of want as Board[]) await printBoard(b)
-        push([txt('Play ', 'dim'), cmd('snake'), txt(' to get on the board.', 'dim')])
-      })()
+      const want: Board[] = args[0]?.startsWith('a') ? ['achievements'] : args[0]?.startsWith('s') ? ['snake'] : ['snake', 'achievements']
+      showScores(want)
     },
   },
   leaderboard: { desc: 'same as scores', hidden: true, run: (a, c) => LEADERBOARD_COMMANDS.scores.run(a, c) },

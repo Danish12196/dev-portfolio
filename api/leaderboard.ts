@@ -12,6 +12,7 @@
 // replayed move by move on the server, and achievement times can't beat the
 // clock the server started when the run began.
 
+import { RegExpMatcher, englishDataset, englishRecommendedTransformers } from 'obscenity'
 import { store, storeMissing, type Entry } from './_lib/store.js'
 import { ipKey, nonce, secretMissing, sign, verify } from './_lib/token.js'
 import { nameProblem, tidyName } from '../src/leaderboard/names.js'
@@ -20,6 +21,7 @@ import { MAX_COLS, MAX_ROWS, MIN_COLS, MIN_ROWS, replay, type Move } from '../sr
 
 const TOP = 10
 const DAY = 86400
+const matcher = new RegExpMatcher({ ...englishDataset.build(), ...englishRecommendedTransformers })
 
 const json = (body: unknown, status = 200, headers: Record<string, string> = {}) =>
   new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store', ...headers } })
@@ -46,7 +48,11 @@ const save = (board: Board, e: Entry) => store.save(board, BOARDS[board].highWin
 
 function checkName(raw: unknown) {
   const name = tidyName(String(raw ?? ''))
-  return { name, problem: nameProblem(name) }
+  const problem = nameProblem(name)
+  if (problem) return { name, problem }
+  const squashed = name.replace(/[\s_.-]+/g, '')
+  if (matcher.hasMatch(name) || matcher.hasMatch(squashed)) return { name, problem: "let's keep it friendly" }
+  return { name, problem: null }
 }
 
 /* ------------------------------ snake ------------------------------ */
@@ -108,7 +114,6 @@ async function snakeSubmit(req: Request, body: Record<string, unknown>) {
 interface AchStart {
   k: 'ach'
   n: string
-  run: string
   iat: number
 }
 interface AchFinish {
@@ -122,11 +127,9 @@ const RUN_TTL = 90 * DAY
 const MIN_RUN_MS = 60_000
 const ACHIEVEMENT_IDS = new Set(ACHIEVEMENTS.map((a) => a.id))
 
-async function achStart(req: Request, body: Record<string, unknown>) {
-  const run = String(body.runId ?? '')
-  if (!/^[\w-]{4,64}$/.test(run)) return fail('bad run')
+async function achStart(req: Request) {
   if (await limited(req, 'ach-start', 30, 3600)) return fail('slow down', 429)
-  const t: AchStart = { k: 'ach', n: nonce(), run, iat: Date.now() }
+  const t: AchStart = { k: 'ach', n: nonce(), iat: Date.now() }
   return json({ token: sign(t) })
 }
 
@@ -208,7 +211,7 @@ export async function POST(req: Request) {
       case 'snake':
         return await snakeSubmit(req, body)
       case 'ach-start':
-        return await achStart(req, body)
+        return await achStart(req)
       case 'ach-finish':
         return await achFinish(req, body)
       case 'ach':

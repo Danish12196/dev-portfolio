@@ -71,10 +71,10 @@ export function ago(iso: string, now = Date.now()) {
   return new Date(iso).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })
 }
 
+import { formatDuration } from '../achievements'
+
 export function duration(seconds: number) {
-  const m = Math.floor(seconds / 60)
-  const s = seconds % 60
-  return m ? `${m}m ${String(s).padStart(2, '0')}s` : `${s}s`
+  return formatDuration(seconds * 1000, 'words')
 }
 
 /** 0 to 4, like GitHub's own colour levels, scaled to the busiest day. */

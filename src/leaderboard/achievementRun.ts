@@ -49,7 +49,7 @@ async function start(p: Progress) {
   const late = Date.now() - p.startedAt > LATE_MS || Object.keys(p.found).length > 0
   useRun.setState({ ...blank, runId: p.runId })
   if (late) return
-  const r = await achStart(p.runId)
+  const r = await achStart()
   if (useRun.getState().runId !== p.runId) return
   useRun.setState(r.ok ? { token: r.token, ranked: true } : { error: r.error })
 }

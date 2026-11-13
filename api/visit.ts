@@ -15,9 +15,8 @@
 //   VISITS_KEY   required, the key printed by the setup script
 //   PB_URL       optional, defaults to https://pb.danishali.dev
 
-declare const process: { env: Record<string, string | undefined> }
+import { PB, clientIp, hashVisitor, pbDate, pbFetch } from './_lib/pb.js'
 
-const PB = (process.env.PB_URL || 'https://pb.danishali.dev').replace(/\/+$/, '')
 const KEY = process.env.VISITS_KEY || ''
 const ROWS = `${PB}/api/collections/site_visits/records`
 const TOTALS = `${PB}/api/collections/site_visit_totals/records`
@@ -29,18 +28,15 @@ const PER_VISITOR_HOUR = 30
 const ID = /^[a-z0-9]{15}$/
 
 function pb(url: string, init: RequestInit = {}) {
-  return fetch(url, {
+  return pbFetch(url, {
     ...init,
-    signal: init.signal ?? AbortSignal.timeout(5000),
-    headers: { 'Content-Type': 'application/json', 'X-Visits-Key': KEY, ...(init.headers ?? {}) },
+    headers: { 'X-Visits-Key': KEY, ...(init.headers ?? {}) },
   })
 }
 
-async function visitorHash(request: Request) {
-  const ip = (request.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || request.headers.get('x-real-ip') || 'unknown'
+function visitorHash(request: Request) {
   const day = new Date().toISOString().slice(0, 10)
-  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${KEY}:${day}:${ip}`))
-  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 32)
+  return hashVisitor(`${KEY}:${day}`, clientIp(request))
 }
 
 const empty = () => new Response(null, { status: 204 })
@@ -74,7 +70,7 @@ export async function POST(request: Request) {
   try {
     if (body.n === 1) {
       const visitor = await visitorHash(request)
-      const since = new Date(Date.now() - 3600_000).toISOString().replace('T', ' ')
+      const since = pbDate(Date.now() - 3600_000)
       const filter = encodeURIComponent(`visitor = "${visitor}" && created >= "${since}"`)
       const recent = await pb(`${ROWS}?perPage=1&skipTotal=0&fields=id&filter=${filter}`)
       if (!recent.ok) throw new Error(`PocketBase ${recent.status}`)

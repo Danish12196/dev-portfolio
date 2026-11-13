@@ -184,17 +184,31 @@ function tick() {
   useAchievements.setState({ activeMs: s.activeMs + delta })
 }
 
-setInterval(() => {
-  tick()
-  save(progressOf(useAchievements.getState()))
-}, 5_000)
-document.addEventListener('visibilitychange', () => {
-  if (document.visibilityState === 'visible') lastTick = performance.now()
-  else {
+let clockStarted = false
+
+/** Starts the active-time clock; returns a cleanup function. */
+export function initAchievementClock() {
+  if (clockStarted) return () => {}
+  clockStarted = true
+  lastTick = performance.now()
+  const timer = setInterval(() => {
     tick()
     save(progressOf(useAchievements.getState()))
+  }, 5_000)
+  const onVisibility = () => {
+    if (document.visibilityState === 'visible') lastTick = performance.now()
+    else {
+      tick()
+      save(progressOf(useAchievements.getState()))
+    }
   }
-})
+  document.addEventListener('visibilitychange', onVisibility)
+  return () => {
+    clockStarted = false
+    clearInterval(timer)
+    document.removeEventListener('visibilitychange', onVisibility)
+  }
+}
 
 /** A small number that stays the same for a run, so hidden things move after a reset. */
 export function runSeed(salt: string) {
@@ -231,10 +245,14 @@ export function markRead(path: string) {
   if (seen.length >= 3) unlock('reader')
 }
 
-export function formatDuration(ms: number) {
+export function formatDuration(ms: number, style: 'clock' | 'words' = 'clock') {
   const s = Math.floor(ms / 1000)
   const h = Math.floor(s / 3600)
   const m = Math.floor((s % 3600) / 60)
   const sec = s % 60
+  if (style === 'words') {
+    if (s < 60) return ms % 1000 ? `${(ms / 1000).toFixed(1)}s` : `${s}s`
+    return h ? `${h}h ${m}m` : `${m}m ${String(sec).padStart(2, '0')}s`
+  }
   return h ? `${h}h ${String(m).padStart(2, '0')}m` : `${m}:${String(sec).padStart(2, '0')}`
 }

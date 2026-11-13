@@ -36,7 +36,7 @@ export const snakeStart = () => post<{ token: string; seed: number }>('snake-sta
 export const snakeSubmit = (g: { token: string; name: string; cols: number; rows: number; ticks: number; moves: Move[]; score: number }) =>
   post<{ rank: number | null; score: number; improved: boolean }>('snake', g)
 
-export const achStart = (runId: string) => post<{ token: string }>('ach-start', { runId })
+export const achStart = () => post<{ token: string }>('ach-start')
 
 export const achFinish = (token: string, found: Record<string, number>, activeMs: number | undefined) =>
   post<{ finish: string; ms: number }>('ach-finish', { token, found, activeMs })
@@ -60,11 +60,7 @@ export function rememberName(name: string) {
   }
 }
 
-/** 83456 -> "1m 23.5s" */
-export function formatMs(ms: number) {
-  const s = ms / 1000
-  if (s < 60) return `${s.toFixed(1)}s`
-  const m = Math.floor(s / 60)
-  if (m < 60) return `${m}m ${Math.floor(s % 60)}s`
-  return `${Math.floor(m / 60)}h ${m % 60}m`
-}
+import { formatDuration } from '../achievements'
+
+/** 83456 -> "1m 23s" */
+export const formatMs = (ms: number) => formatDuration(ms, 'words')

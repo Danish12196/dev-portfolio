@@ -15,9 +15,8 @@
 //   GUESTBOOK_NOTIFY_URL   optional, a Discord webhook or an ntfy topic URL
 //                          that gets a ping for every new note
 
-declare const process: { env: Record<string, string | undefined> }
+import { PB, clientIp, hashVisitor, pbDate, pbFetch } from './_lib/pb.js'
 
-const PB = (process.env.PB_URL || 'https://pb.danishali.dev').replace(/\/+$/, '')
 const KEY = process.env.GUESTBOOK_KEY || ''
 const NOTIFY = process.env.GUESTBOOK_NOTIFY_URL || ''
 const COLLECTION = `${PB}/api/collections/guestbook/records`
@@ -39,25 +38,14 @@ function json(body: unknown, status = 200, headers: Record<string, string> = {})
 }
 
 function pb(path: string, init: RequestInit = {}) {
-  return fetch(`${COLLECTION}${path}`, {
+  return pbFetch(`${COLLECTION}${path}`, {
     ...init,
-    signal: init.signal ?? AbortSignal.timeout(5000),
-    headers: { 'Content-Type': 'application/json', 'X-Guestbook-Key': KEY, ...(init.headers ?? {}) },
+    headers: { 'X-Guestbook-Key': KEY, ...(init.headers ?? {}) },
   })
 }
 
-/** PocketBase wants "YYYY-MM-DD HH:MM:SS.sssZ" in filters. */
-function pbDate(d: Date) {
-  return d.toISOString().replace('T', ' ')
-}
-
 /** A salted hash of the visitor's IP: enough to rate limit, useless to anyone without the key. */
-async function visitorHash(request: Request) {
-  const ip = (request.headers.get('x-forwarded-for') ?? '').split(',')[0].trim() || request.headers.get('x-real-ip') || 'unknown'
-  const data = new TextEncoder().encode(`${KEY}:${ip}`)
-  const digest = await crypto.subtle.digest('SHA-256', data)
-  return [...new Uint8Array(digest)].map((b) => b.toString(16).padStart(2, '0')).join('').slice(0, 32)
-}
+const visitorHash = (request: Request) => hashVisitor(KEY, clientIp(request))
 
 /** Trims, drops control characters and squashes runs of blank lines. */
 function clean(s: unknown, max: number) {
@@ -131,7 +119,7 @@ export async function POST(request: Request) {
 
   const visitor = await visitorHash(request)
   try {
-    const since = (min: number) => pbDate(new Date(Date.now() - min * 60_000))
+    const since = (min: number) => pbDate(Date.now() - min * 60_000)
     const [mine, pending] = await Promise.all([
       count(`visitor = "${visitor}" && created >= "${since(PER_VISITOR_WINDOW_MIN)}"`),
       count(`approved = false && created >= "${since(60)}"`),

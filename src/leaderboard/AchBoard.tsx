@@ -3,11 +3,11 @@ import { formatMs, rememberName, savedName } from './api'
 import { NAME_MAX, nameProblem, tidyName } from './names'
 import { retryFinish, submitRun, useRun } from './achievementRun'
 import { openTerminal } from '../shell/opener'
-import { LEADERBOARD_COMMANDS } from './commands'
+import { showScores } from './commands'
 
 function showBoard() {
   openTerminal()
-  LEADERBOARD_COMMANDS.scores.run(['achievements'], {} as Parameters<typeof LEADERBOARD_COMMANDS.scores.run>[1])
+  showScores(['achievements'])
 }
 
 /** In the notepad once every achievement is found: put your time on the board. */
