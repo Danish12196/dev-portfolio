@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { findProject, findReadme, getNode } from './fs'
-import { specFor } from './apps/registry'
+import { specFor } from './apps/spec'
 import Desktop from './desktop/Desktop'
 import Phone from './phone/Phone'
 import { usePower } from './shell/power'

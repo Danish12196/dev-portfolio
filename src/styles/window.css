@@ -1,0 +1,215 @@
+/* ---------- Windows ---------- */
+.win {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border: var(--stroke) solid var(--ink);
+  border-radius: var(--radius);
+  overflow: hidden;
+  animation: win-open 160ms cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.win.active {
+  box-shadow: 0 7px 0 var(--ink);
+}
+:root[data-theme='dark'] .win.active {
+  box-shadow: var(--shadow);
+}
+.win.max {
+  inset: 0;
+  border-radius: 0;
+  border-width: 0;
+  box-shadow: none;
+}
+@keyframes win-open {
+  from {
+    transform: scale(0.94);
+    opacity: 0;
+  }
+}
+.win-bar {
+  flex: none;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 0 14px;
+  background: color-mix(in srgb, var(--win-color, var(--paper)) 28%, var(--paper));
+  border-bottom: var(--stroke) solid var(--ink);
+  font-size: 14px;
+  font-weight: 800;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.win.max .win-bar {
+  cursor: default;
+}
+.win-title {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.win-glyph {
+  flex: none;
+  width: 20px;
+  height: 16px;
+  border-radius: 5px;
+  border: var(--stroke) solid var(--ink);
+  background: var(--win-color, var(--ic-color, var(--paper)));
+}
+.win-glyph-terminal {
+  background: var(--term-bg);
+}
+.win-glyph-guestbook {
+  background: var(--btn-min);
+}
+.win-glyph-updates {
+  background: var(--mint);
+  border-radius: 50%;
+  width: 17px;
+  height: 17px;
+}
+.win-glyph-markdown,
+.win-glyph-text,
+.win-glyph-pdf {
+  width: 15px;
+  height: 19px;
+  background: var(--peach-soft);
+}
+.win-buttons {
+  display: flex;
+  gap: 8px;
+}
+.win-buttons button {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: var(--stroke) solid var(--ink);
+  font-size: 13px;
+  line-height: 1;
+  font-weight: 800;
+  color: var(--on-pastel);
+}
+.win-buttons .b-min {
+  background: var(--btn-min);
+}
+.win-buttons .b-max {
+  background: var(--btn-max);
+}
+.win-buttons .b-close {
+  background: var(--btn-close);
+}
+.win-buttons button:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+.win-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.win-terminal .win-body {
+  background: var(--term-bg);
+}
+.rz {
+  position: absolute;
+  touch-action: none;
+}
+.rz-e {
+  top: 42px;
+  right: -3px;
+  width: 8px;
+  bottom: 12px;
+  cursor: ew-resize;
+}
+.rz-w {
+  top: 42px;
+  left: -3px;
+  width: 8px;
+  bottom: 12px;
+  cursor: ew-resize;
+}
+.rz-s {
+  left: 12px;
+  right: 12px;
+  bottom: -3px;
+  height: 8px;
+  cursor: ns-resize;
+}
+.rz-se {
+  right: -3px;
+  bottom: -3px;
+  width: 16px;
+  height: 16px;
+  cursor: nwse-resize;
+}
+.rz-sw {
+  left: -3px;
+  bottom: -3px;
+  width: 16px;
+  height: 16px;
+  cursor: nesw-resize;
+}
+
+/* ---------- Pills and round buttons ---------- */
+.pill {
+  height: 40px;
+  padding: 0 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: var(--stroke) solid var(--ink);
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--ink);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.pill:hover {
+  background: var(--chip);
+}
+.pill-dark {
+  background: var(--ink);
+  color: var(--paper);
+}
+.pill-dark:hover {
+  background: var(--ink);
+  filter: brightness(1.2);
+}
+.round-btn {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--chip);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1;
+}
+.round-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+
+/* A focused window gets a ring inside its border, so it is never clipped. */
+.win:focus-visible {
+  outline-offset: -5px;
+}
+/* The round title-bar buttons stay small but get a 32px hit area. */
+.win-buttons button {
+  position: relative;
+}
+.win-buttons button::after {
+  content: '';
+  position: absolute;
+  inset: -6px;
+  border-radius: 50%;
+}

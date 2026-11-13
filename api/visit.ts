@@ -31,6 +31,7 @@ const ID = /^[a-z0-9]{15}$/
 function pb(url: string, init: RequestInit = {}) {
   return fetch(url, {
     ...init,
+    signal: init.signal ?? AbortSignal.timeout(5000),
     headers: { 'Content-Type': 'application/json', 'X-Visits-Key': KEY, ...(init.headers ?? {}) },
   })
 }

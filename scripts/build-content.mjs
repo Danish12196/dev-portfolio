@@ -8,8 +8,9 @@
 // project's repo and redeploying this site is enough to show it.
 import { cpSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from 'node:fs'
 import { extname, join, posix } from 'node:path'
+import { fileURLToPath } from 'node:url'
 
-const ROOT = new URL('..', import.meta.url).pathname
+const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const CONTENT = join(ROOT, 'content')
 const OUT_JSON = join(ROOT, 'src/generated/fs.json')
 const OUT_ASSETS = join(ROOT, 'public/fs')

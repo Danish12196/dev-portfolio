@@ -134,6 +134,9 @@ export function ImageView({ path }: { path?: string }) {
     return dir?.type === 'dir' ? dir.children.filter((c): c is FileNode => c.type === 'file' && c.kind === 'image') : [file]
   }, [file])
   const [i, setI] = useState(() => Math.max(0, siblings.findIndex((s) => s.path === file?.path)))
+  useEffect(() => {
+    setI(Math.max(0, siblings.findIndex((s) => s.path === file?.path)))
+  }, [file?.path, siblings])
   const n = siblings.length
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
