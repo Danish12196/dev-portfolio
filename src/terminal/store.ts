@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import type { Line } from './lines'
+import { WELCOME, type Line } from './lines'
 
 /** Full-screen programs that take over the terminal until you quit them. */
 export type Program = 'snake' | 'matrix'
@@ -34,7 +34,7 @@ interface TermState {
 
 // Lives outside the window so closing and reopening the terminal keeps its scrollback.
 export const useTerm = create<TermState>()((set) => ({
-  lines: [],
+  lines: WELCOME,
   cwd: '/',
   history: [],
   handler: null,

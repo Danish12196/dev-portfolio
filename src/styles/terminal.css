@@ -1,0 +1,156 @@
+/* ---------- Terminal ---------- */
+.term {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--term-bg);
+  color: var(--term-fg);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.55;
+  /* ASCII art (cowsay, neofetch) needs every character on its own. */
+  font-variant-ligatures: none;
+}
+.term-scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 10px 12px;
+}
+.term-line {
+  white-space: pre-wrap;
+  word-break: break-word;
+  min-height: 1.55em;
+}
+.seg.dim {
+  color: var(--term-dim);
+}
+.seg.accent {
+  color: var(--term-accent);
+}
+.seg.dir {
+  color: var(--term-dir);
+}
+.seg.err {
+  color: var(--term-err);
+}
+.seg.bold {
+  font-weight: 700;
+}
+a.seg,
+.seg.link {
+  font: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, currentColor 40%, transparent);
+  text-underline-offset: 3px;
+  color: inherit;
+  white-space: pre-wrap;
+}
+.seg.link.dir {
+  color: var(--term-dir);
+}
+.seg.link.accent {
+  color: var(--term-accent);
+}
+.term-input-line {
+  display: flex;
+}
+.term-input {
+  flex: 1;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  outline: 0;
+  color: var(--term-fg);
+  font: inherit;
+  caret-color: var(--term-accent);
+  padding: 0;
+}
+.term-shortcuts {
+  display: flex;
+  gap: 6px;
+  padding: 8px;
+  overflow-x: auto;
+  border-top: 1px solid var(--term-line);
+}
+.term-shortcuts button {
+  flex: none;
+  padding: 6px 10px;
+  border: 1px solid var(--term-line);
+  border-radius: 999px;
+  color: var(--term-fg);
+}
+
+
+
+/* ---------- Terminal skins (easter egg: `skin`). Green stays the default. ---------- */
+.term.skin-amber {
+  --term-fg: #ffb000;
+  --term-dim: #a86f00;
+  --term-accent: #ffd27a;
+  --term-dir: #ffc845;
+  --term-line: #2a1f08;
+  --term-bg: #0f0b05;
+}
+.term.skin-ice {
+  --term-fg: #6ad8ff;
+  --term-dim: #3b8bb0;
+  --term-accent: #c8f1ff;
+  --term-dir: #9be6ff;
+  --term-line: #12232c;
+  --term-bg: #060d12;
+}
+.term.skin-mono {
+  --term-fg: #e8e8e8;
+  --term-dim: #8a8a8a;
+  --term-accent: #ffffff;
+  --term-dir: #cfcfcf;
+  --term-line: #262626;
+  --term-bg: #0b0b0b;
+}
+.term.skin-rainbow .term-scroll {
+  animation: term-rainbow 6s linear infinite;
+}
+@keyframes term-rainbow {
+  to {
+    filter: hue-rotate(360deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .term.skin-rainbow .term-scroll {
+    animation: none;
+    filter: hue-rotate(200deg);
+  }
+}
+
+/* Full-screen terminal programs: snake, matrix */
+.term-program {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: var(--term-bg);
+  outline: none;
+  touch-action: none;
+}
+.term-program canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+.term-program-quit {
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  color: var(--term-dim);
+  font-size: 18px;
+  line-height: 1;
+}
+.term-program-quit:hover,
+.term-program-quit:focus-visible {
+  color: var(--term-accent);
+}
+

@@ -1,0 +1,168 @@
+/* ---------- Phone ---------- */
+.phone {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.ph-status {
+  position: relative;
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 22px;
+  font-size: 13px;
+  font-weight: 800;
+}
+.ph-home {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  padding: 24px 22px 24px;
+}
+.ph-kicker {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--muted);
+}
+.ph-hello h1 {
+  margin: 2px 0 0;
+  font-size: 38px;
+  font-weight: 800;
+  letter-spacing: -1px;
+  line-height: 1.05;
+}
+.ph-hello p {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: var(--muted-2);
+}
+.ph-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  row-gap: 20px;
+  font-size: 12px;
+  font-weight: 700;
+}
+.ph-grid button,
+.ph-dock button,
+.ph-dock a {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink);
+  text-decoration: none;
+}
+.ph-grid button > span:last-child {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ph-dock {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-around;
+  padding: 12px;
+  background: color-mix(in srgb, var(--paper) 94%, transparent);
+  border: var(--stroke) solid var(--ink);
+  border-radius: 28px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.ph-dock button,
+.ph-dock a {
+  width: auto;
+}
+.ph-app {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin: 0 8px 8px;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border: var(--stroke) solid var(--ink);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+.ph-app-bar {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  padding: 8px 12px;
+  background: color-mix(in srgb, var(--ic-color, var(--paper)) 28%, var(--paper));
+  border-bottom: var(--stroke) solid var(--ink);
+  font-size: 14px;
+  font-weight: 800;
+}
+.ph-app-bar span,
+.ph-app-title {
+  margin: 0;
+  font: inherit;
+  min-width: 0;
+  text-align: center;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ph-home-btn {
+  justify-self: end;
+  padding: 4px 12px;
+  border-radius: 999px;
+  border: var(--stroke) solid var(--ink);
+  font-size: 12px;
+}
+.ph-app-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+.phone .doc-wrap {
+  padding: 22px 18px 32px;
+}
+.phone .proj-title h1 {
+  font-size: 30px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .win,
+  .start-menu {
+    animation: none;
+  }
+}
+
+
+/* The phone app bar already has a back button, so the folder's own one is a duplicate. */
+.phone .folder-bar > .round-btn {
+  display: none;
+}
+/* Line the Files folder up with the square dock tiles next to it. */
+.ph-dock .ic-folder {
+  margin-top: calc(var(--s) * 0.08);
+}
+.ph-app-title:focus,
+.ph-hello h1:focus {
+  outline: none;
+}
+
+/* Photos and art are busier than the hills: give the phone's text something to sit on. */
+.phone:has(.wallpaper-img) .ph-hello {
+  align-self: start;
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--paper) 86%, transparent);
+}
+.phone:has(.wallpaper-img) .ph-grid button > span:last-child {
+  padding: 0 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--paper) 86%, transparent);
+}

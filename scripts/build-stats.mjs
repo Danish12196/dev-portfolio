@@ -13,9 +13,9 @@
 //                  and downloads of the games on danish-gamedev.itch.io
 import { mkdirSync, readdirSync, statSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
-const ROOT = new URL('..', import.meta.url).pathname
+const ROOT = fileURLToPath(new URL('..', import.meta.url))
 const OUT = join(ROOT, 'public/stats.json')
 const USER = 'danishali-codes'
 const SITE_REPO = 'danishali-codes/dev-portfolio'
