@@ -9,6 +9,7 @@ import { startScreensaver } from '../shell/screensaver'
 import { findWallpaper, getWallpaper, setWallpaper, WALLPAPERS } from '../shell/wallpaper'
 import { EGG_COMMANDS, HIDDEN_FILES } from './eggs'
 import { unlock } from '../achievements'
+import { LEADERBOARD_COMMANDS } from '../leaderboard/commands'
 import { cmd, err, txt, type Line, type Seg } from './lines'
 
 export type { Line, Seg } from './lines'
@@ -329,6 +330,7 @@ export const COMMANDS: Record<string, Command> = {
     run: (_a, { exit }) => exit(),
   },
   ...EGG_COMMANDS,
+  ...LEADERBOARD_COMMANDS,
 }
 
 const visible = () => Object.keys(COMMANDS).filter((c) => !COMMANDS[c].hidden)

@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
 import { txt, type Line } from './lines'
+import { MAX_COLS, MAX_ROWS, canTurn, dirCode, newGame, tick, tickMs, type Move, type Pt, type SnakeGame } from '../leaderboard/snakeEngine'
+import { snakeStart } from '../leaderboard/api'
+import SnakeBoard from '../leaderboard/SnakeBoard'
 
 const CELL = 16
 const HUD = 28
 const BEST_KEY = 'devportfolio.snake.best'
 
-type Pt = { x: number; y: number }
 const DIRS: Record<string, Pt> = {
   ArrowUp: { x: 0, y: -1 },
   ArrowDown: { x: 0, y: 1 },
@@ -43,90 +45,90 @@ export default function Snake({ onQuit }: { onQuit: (...l: Line[]) => void }) {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [, setTick] = useState(0)
   const game = useRef({
-    cols: 20,
-    rows: 12,
-    snake: [] as Pt[],
-    dir: { x: 1, y: 0 },
+    g: newGame(20, 12, 1) as SnakeGame,
     queue: [] as Pt[],
-    food: { x: 0, y: 0 },
-    score: 0,
+    moves: [] as Move[],
     best: readBest(),
     state: 'ready' as 'ready' | 'playing' | 'paused' | 'over',
+    /** Signed seed for the next game, fetched ahead so starting a game never waits on the network. */
+    next: null as { token: string; seed: number } | null,
+    /** The token this game was dealt with. Null means it can't go on the leaderboard. */
+    token: null as string | null,
   })
+  const [over, setOver] = useState<{ id: number; token: string | null; score: number; cols: number; rows: number; ticks: number; moves: Move[] } | null>(null)
 
-  /** Puts food on a random free cell. Returns false when the board is full. */
-  function placeFood() {
-    const g = game.current
-    const free: Pt[] = []
-    for (let y = 0; y < g.rows; y++)
-      for (let x = 0; x < g.cols; x++) if (!g.snake.some((p) => p.x === x && p.y === y)) free.push({ x, y })
-    if (!free.length) return false
-    g.food = free[Math.floor(Math.random() * free.length)]
-    return true
+  function prefetch() {
+    snakeStart().then((r) => {
+      if (r.ok) game.current.next = { token: r.token, seed: r.seed }
+    })
   }
 
   function gameOver() {
-    const g = game.current
-    g.state = 'over'
-    if (g.score > g.best) {
-      g.best = g.score
-      saveBest(g.best)
+    const s = game.current
+    s.state = 'over'
+    const { g } = s
+    if (g.score > s.best) {
+      s.best = g.score
+      saveBest(s.best)
     }
+    setOver({ id: Date.now(), token: s.token, score: g.score, cols: g.cols, rows: g.rows, ticks: g.ticks, moves: s.moves })
   }
 
   function reset() {
-    const g = game.current
+    const s = game.current
     const box = boxRef.current!
-    g.cols = Math.max(10, Math.floor(box.clientWidth / CELL))
-    g.rows = Math.max(8, Math.floor((box.clientHeight - HUD) / CELL))
-    const y = Math.floor(g.rows / 2)
-    g.snake = [2, 1, 0].map((x) => ({ x, y }))
-    g.dir = { x: 1, y: 0 }
-    g.queue = []
-    g.score = 0
-    placeFood()
+    const cols = Math.min(MAX_COLS, Math.max(10, Math.floor(box.clientWidth / CELL)))
+    const rows = Math.min(MAX_ROWS, Math.max(8, Math.floor((box.clientHeight - HUD) / CELL)))
+    const next = s.next
+    s.token = next?.token ?? null
+    s.g = newGame(cols, rows, next?.seed ?? Math.floor(Math.random() * 2 ** 32))
+    s.queue = []
+    s.moves = []
+  }
+
+  /** Starts a fresh game, spending the prefetched seed if there is one. */
+  function start() {
+    const s = game.current
+    reset()
+    if (s.next) {
+      s.next = null
+      prefetch()
+    }
+    s.state = 'playing'
+    setOver(null)
   }
 
   function quit() {
-    const g = game.current
-    onQuit([txt(`snake: score ${g.score}, best ${g.best}`, 'dim')])
+    const s = game.current
+    onQuit([txt(`snake: score ${s.g.score}, best ${s.best}`, 'dim')])
   }
 
   function steer(d: Pt) {
-    const g = game.current
-    if (g.state === 'ready' || g.state === 'over') {
-      reset()
-      g.state = 'playing'
-    }
-    const last = g.queue[g.queue.length - 1] ?? g.dir
-    if (d.x === -last.x && d.y === -last.y) return
-    if (d.x === last.x && d.y === last.y) return
-    if (g.queue.length < 3) g.queue.push(d)
+    const s = game.current
+    if (s.state === 'ready' || s.state === 'over') start()
+    const last = s.queue[s.queue.length - 1] ?? s.g.dir
+    if (!canTurn(last, d)) return
+    if (s.queue.length < 3) s.queue.push(d)
   }
 
   function step() {
-    const g = game.current
-    if (g.state !== 'playing') return
-    if (g.queue.length) g.dir = g.queue.shift()!
-    const head = g.snake[0]
-    const next = { x: head.x + g.dir.x, y: head.y + g.dir.y }
-    const hitWall = next.x < 0 || next.y < 0 || next.x >= g.cols || next.y >= g.rows
-    const eating = next.x === g.food.x && next.y === g.food.y
-    const body = eating ? g.snake : g.snake.slice(0, -1)
-    if (hitWall || body.some((p) => p.x === next.x && p.y === next.y)) return gameOver()
-    g.snake = [next, ...body]
-    if (eating) {
-      g.score++
-      // Filling the whole board ends the game as a win.
-      if (!placeFood()) gameOver()
+    const s = game.current
+    if (s.state !== 'playing') return
+    const d = s.queue.shift()
+    if (d && canTurn(s.g.dir, d)) {
+      // Logged with the tick it takes effect on, so the server can replay the game.
+      s.moves.push([s.g.ticks, dirCode(d)])
+      s.g.dir = d
     }
+    tick(s.g)
+    if (s.g.over) gameOver()
   }
 
   function draw() {
     const canvas = canvasRef.current
     const box = boxRef.current
     if (!canvas || !box) return
-    const g = game.current
+    const { g, best, state } = game.current
     const dpr = window.devicePixelRatio || 1
     const w = box.clientWidth
     const h = box.clientHeight
@@ -154,11 +156,11 @@ export default function Snake({ onQuit }: { onQuit: (...l: Line[]) => void }) {
     ctx.font = '13px "JetBrains Mono", ui-monospace, monospace'
     ctx.textBaseline = 'middle'
     ctx.fillStyle = dim
-    ctx.fillText(`score ${g.score}   best ${g.best}`, ox, HUD / 2)
+    ctx.fillText(`score ${g.score}   best ${best}`, ox, HUD / 2)
     const help = window.matchMedia?.('(pointer: coarse)').matches ? 'swipe to steer' : 'q quits · space pauses'
     ctx.fillText(help, Math.min(ox + g.cols * CELL, w - 40) - ctx.measureText(help).width, HUD / 2)
 
-    if (g.snake.length) {
+    {
       ctx.fillStyle = accent
       ctx.fillRect(ox + g.food.x * CELL + 4, oy + g.food.y * CELL + 4, CELL - 8, CELL - 8)
       g.snake.forEach((p, i) => {
@@ -168,15 +170,15 @@ export default function Snake({ onQuit }: { onQuit: (...l: Line[]) => void }) {
     }
 
     const msg =
-      g.state === 'ready'
+      state === 'ready'
         ? ['SNAKE', 'press an arrow key or swipe to start']
-        : g.state === 'paused'
+        : state === 'paused'
           ? ['PAUSED', 'space to carry on']
-          : g.state === 'over'
-            ? ['GAME OVER', `score ${g.score}${g.score && g.score === g.best ? ' · new best!' : ''} · arrow or swipe to play again`]
+          : state === 'over'
+            ? ['GAME OVER', `score ${g.score}${g.score && g.score === best ? ' · new best!' : ''} · arrow or swipe to play again`]
             : null
     if (msg) {
-      const cy = oy + g.rows * CELL * 0.28
+      const cy = oy + g.rows * CELL * 0.22
       ctx.textAlign = 'center'
       ctx.fillStyle = accent
       ctx.font = 'bold 20px "JetBrains Mono", ui-monospace, monospace'
@@ -191,12 +193,13 @@ export default function Snake({ onQuit }: { onQuit: (...l: Line[]) => void }) {
   useEffect(() => {
     boxRef.current?.focus()
     reset()
+    prefetch()
     draw()
     let timer = 0
     const loop = () => {
       step()
       draw()
-      const speed = Math.max(55, 120 - game.current.score * 3)
+      const speed = tickMs(game.current.g.score)
       timer = window.setTimeout(loop, speed)
     }
     loop()
@@ -216,6 +219,7 @@ export default function Snake({ onQuit }: { onQuit: (...l: Line[]) => void }) {
 
   function onKey(e: React.KeyboardEvent) {
     const g = game.current
+    if (e.target !== e.currentTarget) return
     const key = e.key.length === 1 ? e.key.toLowerCase() : e.key
     if (key === 'q' || key === 'Escape') {
       e.preventDefault()
@@ -259,6 +263,7 @@ export default function Snake({ onQuit }: { onQuit: (...l: Line[]) => void }) {
       onTouchEnd={onTouchEnd}
     >
       <canvas ref={canvasRef} />
+      {over && over.score > 0 && <SnakeBoard key={over.id} game={over} onDone={() => boxRef.current?.focus()} />}
       <button type="button" className="term-program-quit" onClick={quit} aria-label="Quit snake">
         ×
       </button>
